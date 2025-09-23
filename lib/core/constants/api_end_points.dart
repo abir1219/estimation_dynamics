@@ -1,5 +1,5 @@
 import 'package:estimation_dynamics/core/constants/app_constants.dart';
-import 'package:estimation_dynamics/core/utils/environment_variable.dart';
+import 'package:estimation_dynamics/core/utils/constant_variable.dart';
 
 class ApiEndPoints {
   // static const LOGIN_BASE_URL = "http://cloud24k.com/api/";
@@ -19,7 +19,7 @@ class ApiEndPoints {
   // static final BASE_URL =
   //     CLIENT_URL;
   // static const BASE_URL = "https://scu6bep8f7414799839-rs.su.retail.dynamics.com/Commerce/RestApiV1/ExecuteGenericOperation";
-  static final String BASE_URL = EnvironmentVariable.retailServerURL;
+  static final String BASE_URL = ConstantVariable.retailServerURL;
 
   static _ApiEndPoints authEndpoints = _ApiEndPoints();
 }

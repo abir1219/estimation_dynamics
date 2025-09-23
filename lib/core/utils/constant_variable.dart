@@ -1,4 +1,4 @@
-class EnvironmentVariable{
+class ConstantVariable{
   static final String client_id = "e7db77ef-e2a5-4aea-9257-3db5bcfb76d5";
   static final String client_secret = "Js~8Q~9Sx39gnjrOCan.SIp4LdpKij1cY2-gicpu";
   static final String grant_type = "client_credentials";

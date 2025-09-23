@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/local/shared_preferences_helper.dart';
-import '../../../../core/utils/environment_variable.dart';
+import '../../../../core/utils/constant_variable.dart';
 import '../../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 
 part 'search_customer_event.dart';
@@ -51,7 +51,7 @@ class SearchCustomerBloc
     String jsonString = '''
   {
     "RequestVal": "{\\"Operation\\":\\"SEARCHCUSTOMER\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
-    "ObjStrVal": "{\\"CustomerId\\":\\"\\",\\"CustomerName\\":\\"\\",\\"RefNumber\\":\\"${event.refNumber}\\",\\"RefType\\":${EnvironmentVariable.REFTYPE},\\"SearchTerm\\":\\"${event.customerName}\\"}"
+    "ObjStrVal": "{\\"CustomerId\\":\\"\\",\\"CustomerName\\":\\"\\",\\"RefNumber\\":\\"${event.refNumber}\\",\\"RefType\\":${ConstantVariable.REFTYPE},\\"SearchTerm\\":\\"${event.customerName}\\"}"
 }
   ''';
 
@@ -59,7 +59,7 @@ class SearchCustomerBloc
     Map<String, dynamic> header = {
       'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-      'oun': EnvironmentVariable.OperatingUnitNumber,
+      'oun': ConstantVariable.OperatingUnitNumber,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };

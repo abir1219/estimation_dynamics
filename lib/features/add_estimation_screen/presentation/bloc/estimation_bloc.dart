@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/local/shared_preferences_helper.dart';
-import '../../../../core/utils/environment_variable.dart';
+import '../../../../core/utils/constant_variable.dart';
 import '../../../search_customer_dialog/data/customer_model.dart';
 import '../../data/repository/estimation_repository.dart';
 
@@ -55,7 +55,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
       Map<String, dynamic> header = {
         'Authorization':
         'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-        'oun': EnvironmentVariable.OperatingUnitNumber,
+        'oun': ConstantVariable.OperatingUnitNumber,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
@@ -185,7 +185,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
         {
           'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-          'oun': EnvironmentVariable.OperatingUnitNumber,
+          'oun': ConstantVariable.OperatingUnitNumber,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },

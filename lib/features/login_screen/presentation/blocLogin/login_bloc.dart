@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:estimation_dynamics/core/utils/environment_variable.dart';
+import 'package:estimation_dynamics/core/utils/constant_variable.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -47,7 +47,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     Map<String, dynamic> header = {
       'Authorization':
       'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-      'oun': EnvironmentVariable.OperatingUnitNumber,
+      'oun': ConstantVariable.OperatingUnitNumber,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };

@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/local/shared_preferences_helper.dart';
-import '../../../../core/utils/environment_variable.dart';
+import '../../../../core/utils/constant_variable.dart';
 import '../../../salesman_dialog/data/model/employee_model.dart';
 import '../../../search_customer_dialog/data/customer_model.dart';
 import '../../data/model/product_model.dart';
@@ -51,7 +51,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Map<String, dynamic> header = {
       'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-      'oun': EnvironmentVariable.OperatingUnitNumber,
+      'oun': ConstantVariable.OperatingUnitNumber,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
@@ -196,7 +196,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     Map<String, dynamic> header = {
       'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-      'oun': EnvironmentVariable.OperatingUnitNumber,
+      'oun': ConstantVariable.OperatingUnitNumber,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
