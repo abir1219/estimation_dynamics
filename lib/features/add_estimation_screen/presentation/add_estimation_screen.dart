@@ -208,7 +208,17 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                           child: AppWidgets.customButton(
                                             btnName: 'Next',
                                             context: context,
-                                            onClick: () => context.go(AppPages.SELECT_PRODUCT),
+                                            onClick: () {
+                                              if(state.customer == null){
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(content: Text("Select Customer to continue.")));
+                                              }else if(state.salesman == null){
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(content: Text("Select Salesman to continue.")));
+                                              }else{
+                                                context.go(AppPages.SELECT_PRODUCT);
+                                              }
+                                            },
                                           ),
                                         ),
                                       ],

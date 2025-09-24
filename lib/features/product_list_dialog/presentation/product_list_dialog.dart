@@ -186,7 +186,7 @@ class _ProductListDialogState extends State<ProductListDialog> {
                                   } else {
                                     return const Center(
                                       child: Text(
-                                        "Add Product",
+                                        "Search Product",
                                         style: TextStyle(
                                           color: AppColors.DEEP_YELLOW_COLOR,
                                           fontSize: 20,

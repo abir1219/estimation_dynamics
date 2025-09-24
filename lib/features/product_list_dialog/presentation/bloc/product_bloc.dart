@@ -25,21 +25,26 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<SelectProductEvent>(_selectProduct);
     on<ResetProductStateEvent>(_resetProductState);
     on<SubmitProductEvent>(_submitProductState);
+    on<DeleteProductStateEvent>(_deleteProductState);
   }
 
-  List<ProductPayload> selectedProduct = [];
+  // List<ProductPayload> selectedProduct = [];
 
   FutureOr<void> _resetProductState(
       ResetProductStateEvent event, Emitter<ProductState> emit) async {
     emit(const ProductState(status: ProductStatus.initial, productList: []));
-    selectedProduct.clear();
+    //selectedProduct.clear();
   }
 
   FutureOr<void> _scanItem(
       ScanItemEvent event, Emitter<ProductState> emit) async {
     emit(state.copyWith(status: ProductStatus.scanLoading));
 
-    double lineNum = selectedProduct.length.toDouble() + 1;
+    // double lineNum = selectedProduct.length.toDouble() + 1;
+    double lineNum = state.productList!.length.toDouble() + 1;
+
+    debugPrint("LINE_NUMBER--->$lineNum");
+    debugPrint("LENGTH--->${state.productList!.length}");
 
     String jsonString = '''
   {
@@ -71,89 +76,39 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-  /*FutureOr<void> _selectProduct(
-      SelectProductEvent event, Emitter<ProductState> emit) {
-    if (event.product != null) {
-      // Take existing list from state (or empty if null)
-      final updatedList = List<ProductPayload>.from(state.productList ?? []);
-
-      // Add the new product
-      updatedList.add(event.product!);
-
-      // Compute total amount
-      final totalAmount =
-      updatedList.fold(0.0, (sum, product) => sum + product.lineTotal);
-
-      // Emit new state with updated list
-      emit(state.copyWith(
-        status: ProductStatus.submittedItems,
-        productList: updatedList,
-        totalAmount: totalAmount,
-      ));
-
-      debugPrint("UPDATED_PRODUCT_LIST LENGTH --> ${updatedList.length}");
-    }
-  }*/
 
   FutureOr<void> _selectProduct(
       SelectProductEvent event,
       Emitter<ProductState> emit,
       ) {
-    //if (event.product == null) return; // valid in void function
+    if (event.product == null){
+      debugPrint("PRODUCT_STATUS-->${event.product == null}");
+    }
+    debugPrint("state.productList_01-->${state.selectedProductList}");
+    // Copy the current list from state
+    //final updatedList = List<ProductPayload>.from(state.productList);
+    final updatedList = List<ProductPayload>.from(state.selectedProductList ?? []);
 
-    // final updatedList = List<ProductPayload>.from(state.productList ?? []);
-    //selectedProduct = List<ProductPayload>.from(state.productList ?? []);
-    selectedProduct.add(event.product!);
-
-    final totalAmount =
-    selectedProduct.fold(0.0, (sum, product) => sum + product.lineTotal);
+    // Add new product
+    updatedList.add(event.product!);
+    debugPrint("state.productList-->${state.selectedProductList}");
+    debugPrint("updatedList-->${updatedList.length}");
+    // Recalculate total
+    final totalAmount = updatedList.fold(
+      0.0,
+          (sum, product) => sum + product.lineTotal,
+    );
 
     emit(state.copyWith(
       status: ProductStatus.submittedItems,
-      productList: selectedProduct,
+      selectedProductList: updatedList,
       totalAmount: totalAmount,
     ));
 
-    debugPrint("UPDATED_PRODUCT_LIST LENGTH --> ${selectedProduct.length}");
+    // debugPrint("UPDATED_PRODUCT_LIST LENGTH --> ${updatedList.length}");
   }
 
-  /*FutureOr<void> _selectProduct(
-      SelectProductEvent event, Emitter<ProductState> emit) {
-    debugPrint("EVENT_PRODUCT-->${event.product}");
-    if (event.product != null) {
-      // Make sure we are working with the existing list from state
-      final updatedList = List<ProductPayload>.from(state.productList ?? []);
 
-      updatedList.add(event.product!); // add new product
-      debugPrint("UPDATED_PRODUCT_LIST-->$updatedList");
-
-      double totalAmount =
-      updatedList.fold(0.0, (sum, product) => sum + product.lineTotal);
-
-      emit(state.copyWith(
-        status: ProductStatus.submittedItems,
-        productList: updatedList, // emit updated list
-        totalAmount: totalAmount,
-      ));
-    }
-  }*/
-
-
-  /*FutureOr<void> _selectProduct(
-      SelectProductEvent event, Emitter<ProductState> emit) {
-    if (event.product != null) {
-      selectedProduct.add(event.product!);
-
-      double totalAmount =
-          selectedProduct.fold(0.0, (sum, product) => sum + product.lineTotal);
-
-      emit(state.copyWith(
-        status: ProductStatus.submittedItems,
-        productList: List.from(selectedProduct), // make a copy
-        totalAmount: totalAmount,
-      ));
-    }
-  }*/
 
   FutureOr<void> _submitProductState(
       SubmitProductEvent event, Emitter<ProductState> emit) async {
@@ -202,18 +157,36 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     };
 
     try {
-      final value = await _productRepository.scanItem(jsonString, header);
-      //final productModel = ProductModel.fromJson(value);
-      debugPrint("VALUE-->$value");
+      await _productRepository.scanItem(jsonString, header).then((value) {
+        //final productModel = ProductModel.fromJson(value);
+        debugPrint("VALUE-->$value");
 
-      emit(state.copyWith(
-        status: ProductStatus.submitDone,
-        productList: [],
-        //scannedItem: productModel.dataResult!.payload,
-      ));
+        emit(state.copyWith(
+          status: ProductStatus.submitDone,
+          productList: [],
+          selectedProductList: [],
+          //scannedItem: productModel.dataResult!.payload,
+        ));
+
+      },);
     } catch (error) {
       debugPrint("ScanItem_ERROR-->$error");
       // Optionally, you can add an error field in ProductState and emit here
     }
+  }
+
+  FutureOr<void> _deleteProductState(DeleteProductStateEvent event, Emitter<ProductState> emit) {
+    final updatedList = List<ProductPayload>.from(state.selectedProductList ?? []);
+    updatedList.removeAt(event.index!);
+    final totalAmount = updatedList.fold(
+      0.0,
+          (sum, product) => sum + product.lineTotal,
+    );
+
+    emit(state.copyWith(
+      status: ProductStatus.submittedItems,
+      selectedProductList: updatedList,
+      totalAmount: totalAmount,
+    ));
   }
 }

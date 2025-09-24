@@ -48,12 +48,14 @@ class ProductState extends Equatable {
   final ProductStatus status;
   final ProductPayload? scannedItem;
   final List<ProductPayload>? productList;
+  final List<ProductPayload>? selectedProductList;
   final double totalAmount;
 
   const ProductState({
     this.status = ProductStatus.initial,
     this.scannedItem,
     this.productList = const[],
+    this.selectedProductList = const[],
     this.totalAmount = 0.0,
   });
 
@@ -61,12 +63,14 @@ class ProductState extends Equatable {
     ProductStatus? status,
     ProductPayload? scannedItem,
     List<ProductPayload>? productList,
+    List<ProductPayload>? selectedProductList,
     double? totalAmount,
   }) {
     return ProductState(
       status: status ?? this.status,
       scannedItem: scannedItem ?? this.scannedItem,
       productList: productList ?? this.productList,
+      selectedProductList: selectedProductList ?? this.selectedProductList,
       totalAmount: totalAmount ?? this.totalAmount,
     );
   }

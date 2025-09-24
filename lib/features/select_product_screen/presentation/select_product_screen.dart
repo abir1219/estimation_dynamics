@@ -137,7 +137,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                               builder: (context, state) {
                                 final totalAmount = ( //state.status == ProductStatus.submittedItems &&
                                     //state.productList != null &&
-                                    state.productList!.isNotEmpty)
+                                    state.selectedProductList!.isNotEmpty)
                                     ? state.totalAmount
                                     : 0.0;
 
@@ -162,6 +162,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                           child: BlocConsumer<ProductBloc, ProductState>(
                             listener: (context, state) {
                               if(state.status == ProductStatus.submitDone ){
+                                context.read<EstimationBloc>().add(ResetEstimationEvent());
                                 context.go(AppPages.DASHBOARD);
                               }
                             },
@@ -169,9 +170,11 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                               return AppWidgets.customButton(
                                 btnName: "Submit",
                                 context: context,
+                                isLoading: state.status == ProductStatus.scanLoading,
                                 onClick: () {
-                                  if(state.totalAmount > 0.0){
-                                    context.read<ProductBloc>().add(SubmitProductEvent(selectedProductList: state.productList, refNo: refNumber, customer: customer, salesman: salesman));
+                                  // if(state.totalAmount > 0.0){
+                                  if(state.selectedProductList!.isNotEmpty){
+                                    context.read<ProductBloc>().add(SubmitProductEvent(selectedProductList: state.selectedProductList, refNo: refNumber, customer: customer, salesman: salesman));
                                   }else{
                                     ScaffoldMessenger.of(context)
                                         .showSnackBar(SnackBar(content: Text("Please select product")));
@@ -377,9 +380,9 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                     context: context,
                     barrierDismissible: true,
                     builder: (context) {
-                      context
-                          .read<ProductBloc>()
-                          .add(ResetProductStateEvent());
+                      // context
+                      //     .read<ProductBloc>()
+                      //     .add(ResetProductStateEvent());
                       return ProductListDialog(
                         // productList: state.productList!,
                         // index: index,
@@ -494,14 +497,14 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
         final size = MediaQuery.sizeOf(context);
 
         // ✅ Always check productList first
-        if (state.productList != null && state.productList!.isNotEmpty) {
-          debugPrint("ProductLength---> ${state.productList!.length}");
+        if (state.selectedProductList != null && state.selectedProductList!.isNotEmpty) {
+          debugPrint("ProductLength---> ${state.selectedProductList!.length}");
           return ListView.builder(
             shrinkWrap: true,
-            itemCount: state.productList!.length,
+            itemCount: state.selectedProductList!.length,
             itemBuilder: (context, index) {
-              final product = state.productList![index];
-              return _buildProductContainer(product, size, () {});
+              final product = state.selectedProductList![index];
+              return _buildProductContainer(product,index, size ,() {});
             },
           );
         }
@@ -522,7 +525,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
   }
 
 
-  Widget _buildProductContainer(ProductPayload product,
+  Widget _buildProductContainer(ProductPayload product,int index,
       Size size,
       void Function() func,) {
     return GestureDetector(
@@ -617,6 +620,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                 GestureDetector(
                   onTap: () {
                     debugPrint("---DELETE---");
+                    context.read<ProductBloc>().add(DeleteProductStateEvent(index: index));
                   },
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 5),

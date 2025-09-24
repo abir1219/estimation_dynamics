@@ -39,6 +39,79 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
       FetchSalesmanEvent event,
       Emitter<EstimationState> emit,
       ) async {
+    if (state is EstimationDataState) {
+      emit((state as EstimationDataState).copyWith(isLoading: true, error: null));
+    }
+
+    try {
+      String jsonString = '''
+    {
+      "RequestVal": "{\\"Operation\\":\\"GETSALESREPRESENTATIVE\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+      "ObjStrVal": ""
+    }
+    ''';
+
+      Map<String, dynamic> header = {
+        'Authorization':
+        'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
+        'oun': ConstantVariable.OperatingUnitNumber,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      final value = await _estimationRepository.fetchSalesmanList(jsonString, header);
+      final salesmanModel = SalesmanModel.fromJson(jsonDecode(value['DataResult']));
+      final fullList = salesmanModel.payload?.payload ?? [];
+
+      if (state is EstimationDataState) {
+        final currentState = state as EstimationDataState;
+        emit(currentState.copyWith(
+          isLoading: false,
+          error: null,
+          salesmanModel: salesmanModel,
+          fullSalesmanList: fullList,         // store full list
+          filteredSalesmanList: fullList,     // initialize filtered list with same
+        ));
+      }
+    } catch (error) {
+      if (state is EstimationDataState) {
+        emit((state as EstimationDataState).copyWith(
+          isLoading: false,
+          error: error.toString(),
+        ));
+      }
+    }
+  }
+
+  FutureOr<void> _searchEmployee(
+      SearchEmployeeEvent event,
+      Emitter<EstimationState> emit,
+      ) {
+    if (state is EstimationDataState) {
+      final currentState = state as EstimationDataState;
+      final fullList = currentState.fullSalesmanList; // always original list
+
+      debugPrint("fullList length: ${fullList.length}");
+      final query = event.search.trim().toLowerCase();
+      debugPrint("Filtered Salesman: $query");
+
+      final filteredList = query.isEmpty
+          ? fullList
+          : fullList.where((s) => s.text?.toLowerCase().contains(query) ?? false).toList();
+
+      emit(currentState.copyWith(filteredSalesmanList: filteredList));
+
+      debugPrint("Filtered Salesman Length: ${filteredList.length}");
+    }
+  }
+
+
+
+
+  /*FutureOr<void> _onFetchSalesman(
+      FetchSalesmanEvent event,
+      Emitter<EstimationState> emit,
+      ) async {
     // Emit loading state
     if (state is EstimationDataState) {
       emit((state as EstimationDataState).copyWith(isLoading: true, error: null));
@@ -82,7 +155,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
         ));
       }
     }
-  }
+  }*/
 
   /*FutureOr<void> _searchEmployee(
     SearchEmployeeEvent event,
@@ -129,14 +202,14 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
     }
   }*/
 
-  FutureOr<void> _searchEmployee(
+  /*FutureOr<void> _searchEmployee(
       SearchEmployeeEvent event,
       Emitter<EstimationState> emit,
       ) {
     if (state is EstimationDataState) {
       final currentState = state as EstimationDataState;
-      final fullList = currentState.salesmanModel?.payload?.payload ?? [];
-
+      final fullList = currentState.filteredSalesmanList;//salesmanModel?.payload?.payload ?? [];
+      debugPrint("fullList length: ${fullList.length}");
       final query = event.search.trim().toLowerCase();
       debugPrint("Filtered Salesman: $query");
       final filteredList = query.isEmpty
@@ -149,7 +222,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
 
       debugPrint("Filtered Salesman Length: ${filteredList.length}");
     }
-  }
+  }*/
 
 
   FutureOr<void> _onSetSelectedCustomer(

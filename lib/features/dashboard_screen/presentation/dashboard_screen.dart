@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,6 +8,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../router/app_pages.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../../widgets/custom_bottom_nav.dart';
+import '../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -15,7 +17,23 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+
 class _DashboardScreenState extends State<DashboardScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    /*final estimationState = context.read<EstimationBloc>().state;
+    if (estimationState is EstimationDataState) {
+      debugPrint("Ref Number: ${estimationState.refNumber}");
+      refNumber = estimationState.refNumber;
+      debugPrint("Customer: ${estimationState.customer}");
+      customer = estimationState.customer!;
+      debugPrint("Salesman: ${estimationState.salesman}");
+      salesman = estimationState.salesman!;
+    }*/
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

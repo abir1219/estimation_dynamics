@@ -34,6 +34,15 @@ final class ResetProductStateEvent extends ProductEvent {
   List<Object?> get props => [];
 }
 
+final class DeleteProductStateEvent extends ProductEvent {
+  final int? index;
+
+  const DeleteProductStateEvent({required this.index});
+
+  @override
+  List<Object?> get props => [index];
+}
+
 final class SubmitProductEvent extends ProductEvent {
   final List<ProductPayload>? selectedProductList;
   final String? refNo;

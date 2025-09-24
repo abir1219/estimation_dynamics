@@ -277,7 +277,7 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
                     ),
                   ),
                 ),
-                Spacer(),
+                /*Spacer(),
                 GestureDetector(
                   onTap: () {
                     showDialog(
@@ -317,7 +317,7 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
                           fontWeight: FontWeight.w600),
                     ),
                   ),
-                )
+                )*/
               ],
             ),
             Container(

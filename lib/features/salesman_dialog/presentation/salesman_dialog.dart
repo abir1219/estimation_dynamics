@@ -121,7 +121,8 @@ class _SalesmanDialogState extends State<SalesmanDialog> {
                       builder: (context, state) {
                         if (state is EstimationDataState) {
                           final isLoading = state.isLoading;
-                          final salesmenList = state.filteredSalesmanList ?? []; // make sure you added this field in EstimationDataState
+                          debugPrint("isLoading-->$isLoading and filteredSalesmanList---${state.filteredSalesmanList.length}");
+                          final salesmenList = state.filteredSalesmanList; // make sure you added this field in EstimationDataState
                           if (isLoading) {
                             return const Center(
                               child: CircularProgressIndicator(color: AppColors.BUTTON_COLOR),
