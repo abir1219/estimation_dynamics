@@ -118,13 +118,19 @@ class _ProductListDialogState extends State<ProductListDialog> {
                         children: [
                           AppWidgets.buildSearchableField(
                               size, "Product code,Name,Id", _itemTextController,
-                              func: () =>
+                              func: () {
+                                if(_itemTextController.text.isNotEmpty){
                                   context.read<ProductBloc>().add(ScanItemEvent(
-                                        itemNo: _itemTextController.text.trim(),
-                                        refNo: refNumber,
-                                        customer: customer,
-                                        salesman: salesman,
-                                      )),
+                                    itemNo: _itemTextController.text.trim(),
+                                    refNo: refNumber,
+                                    customer: customer,
+                                    salesman: salesman,
+                                  ));
+                                }else{
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(content: Text("Scan an item to continue")));
+                                }
+                              },
                               isEnabled: true),
                           Gap(AppDimensions.getResponsiveHeight(context) *
                               0.01),

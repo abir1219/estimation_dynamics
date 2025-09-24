@@ -77,6 +77,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 50,),
                 _buildSearchOptions(),
                 _buildTitleBar(context),
               ],
@@ -93,13 +94,13 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   Widget _buildSearchOptions() {
     return Column(
       children: [
-        Row(
+        /*Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _buildRadioButton(1, "Search by Others"),
             _buildRadioButton(2, "Search by Date"),
           ],
-        ),
+        ),*/
         /*AppWidgets.buildSearchableField(MediaQuery.sizeOf(context),
             "Estimation Id, Product name", null,
             isEnabled: true),*/

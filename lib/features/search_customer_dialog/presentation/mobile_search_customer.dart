@@ -126,7 +126,7 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
                           fontSize: 18,
                         ),
                       ),
-                      GestureDetector(
+                      /*GestureDetector(
                         onTap: () {
                           Navigator.pop(context);
                           showDialog(
@@ -140,7 +140,7 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
                           color: AppColors.TITLE_TEXT_COLOR,
                           size: 30,
                         ),
-                      ),
+                      ),*/
                     ],
                   ),
                   Gap(AppDimensions.getResponsiveHeight(context) * 0.015),

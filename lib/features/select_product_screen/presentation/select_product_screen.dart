@@ -234,57 +234,59 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: CustomBottomNav(
-        selectedIndex: 0,
-      ),
-      body: SafeArea(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Column(
-              children: [
-                AppWidgets.headerContainer(
-                    context: context,
-                    isLogin: true,
-                    backPageName: AppPages.ADD_ESTIMATION),
-                Expanded(child: AppWidgets.footerContainer(context)),
-              ],
-            ),
-            Positioned(
-              top: AppDimensions.getResponsiveHeight(context) * 0.12,
-              left: 0,
-              right: 0,
-              child: _buildMainContainer(context),
-            ),
-          ],
+    return ScaffoldMessenger(
+      child: Scaffold(
+        bottomNavigationBar: CustomBottomNav(
+          selectedIndex: 0,
         ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 52.0),
-        child: FloatingActionButton.small(
-          elevation: 0,
-          highlightElevation: 0,
-          splashColor: Colors.transparent,
-          backgroundColor: Colors.transparent,
-          onPressed: _toggleDialog,
-          child: Container(
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.DEEP_YELLOW_COLOR,
-            ),
-            constraints: const BoxConstraints.expand(),
-            child: Icon(
-              _isDialogOpen
-                  ? Icons.keyboard_arrow_down
-                  : Icons.keyboard_arrow_up,
-              color: Colors.white,
+        body: SafeArea(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Column(
+                children: [
+                  AppWidgets.headerContainer(
+                      context: context,
+                      isLogin: true,
+                      backPageName: AppPages.ADD_ESTIMATION),
+                  Expanded(child: AppWidgets.footerContainer(context)),
+                ],
+              ),
+              Positioned(
+                top: AppDimensions.getResponsiveHeight(context) * 0.12,
+                left: 0,
+                right: 0,
+                child: _buildMainContainer(context),
+              ),
+            ],
+          ),
+        ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 52.0),
+          child: FloatingActionButton.small(
+            elevation: 0,
+            highlightElevation: 0,
+            splashColor: Colors.transparent,
+            backgroundColor: Colors.transparent,
+            onPressed: _toggleDialog,
+            child: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.DEEP_YELLOW_COLOR,
+              ),
+              constraints: const BoxConstraints.expand(),
+              child: Icon(
+                _isDialogOpen
+                    ? Icons.keyboard_arrow_down
+                    : Icons.keyboard_arrow_up,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        // floatingActionButtonAnimator: FloatingActionButtonAnimator(),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // floatingActionButtonAnimator: FloatingActionButtonAnimator(),
     );
   }
 
