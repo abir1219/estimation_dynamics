@@ -60,6 +60,7 @@ class DataResult {
 }
 
 class ProductPayload {
+  final double netweight;
   final double linenum;
   final String wastageType;
   final double wastageQty;
@@ -96,6 +97,7 @@ class ProductPayload {
   final String retailVariantId;
 
   ProductPayload({
+    required this.netweight,
     required this.linenum,
     required this.wastageType,
     required this.wastageQty,
@@ -133,6 +135,7 @@ class ProductPayload {
   });
 
   factory ProductPayload.fromJson(Map<String, dynamic> json) => ProductPayload(
+    netweight: (json["NETWEIGHT"] ?? 0).toDouble(),
     linenum: (json["LINENUM"] ?? 0).toDouble(),
     wastageType: json["WASTAGETYPE"] ?? '',
     wastageQty: (json["WASTAGEQTY"] ?? 0).toDouble(),
@@ -172,6 +175,7 @@ class ProductPayload {
   );
 
   Map<String, dynamic> toJson() => {
+    "NETWEIGHT": netweight,
     "LINENUM": linenum,
     "WASTAGETYPE": wastageType,
     "WASTAGEQTY": wastageQty,

@@ -158,7 +158,7 @@ class _ProductListDialogState extends State<ProductListDialog> {
                                       Navigator.pop(context);
                                       showDialog(
                                         context: context,
-                                        barrierDismissible: true,
+                                        barrierDismissible: false,
                                         builder: (context) {
                                           return ProductEstimateFormDialog(
                                             product: state.scannedItem!,
@@ -181,7 +181,7 @@ class _ProductListDialogState extends State<ProductListDialog> {
                                           Navigator.pop(context);
                                           showDialog(
                                             context: context,
-                                            barrierDismissible: true,
+                                            barrierDismissible: false,
                                             builder: (context) {
                                               return ProductEstimateFormDialog(product: product);
                                             },

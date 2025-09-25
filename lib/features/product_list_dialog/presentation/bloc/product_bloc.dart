@@ -23,7 +23,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   ProductBloc(this._productRepository) : super(const ProductState()) {
     on<ScanItemEvent>(_scanItem);
     on<SelectProductEvent>(_selectProduct);
-    on<ResetProductStateEvent>(_resetProductState);
+    // on<ResetProductStateEvent>(_resetProductState);
     on<SubmitProductEvent>(_submitProductState);
     on<DeleteProductStateEvent>(_deleteProductState);
   }
@@ -72,6 +72,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       ));
     } catch (error) {
       debugPrint("ScanItem_ERROR-->$error");
+      emit(const ProductState(status: ProductStatus.initial));
       // Optionally, you can add an error field in ProductState and emit here
     }
   }

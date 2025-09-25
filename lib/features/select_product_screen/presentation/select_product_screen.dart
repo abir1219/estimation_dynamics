@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../main.dart';
 import '../../../router/app_pages.dart';
 import '../../../widgets/app_widgets.dart';
 import '../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
@@ -163,7 +165,8 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                             listener: (context, state) {
                               if(state.status == ProductStatus.submitDone ){
                                 context.read<EstimationBloc>().add(ResetEstimationEvent());
-                                context.go(AppPages.DASHBOARD);
+                                _showSuccessDialog();
+                                Future.delayed(Duration(milliseconds: 2300),() => navigatorKey.currentContext!.go(AppPages.DASHBOARD),);
                               }
                             },
                             builder: (context, state) {
@@ -642,6 +645,22 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future _showSuccessDialog() {
+    final size = MediaQuery.sizeOf(context);
+    return showDialog(
+      barrierColor: Colors.white,
+      context: context,
+      builder: (context) {
+        return Lottie.asset(
+          'assets/lottie/success_lottie.json',
+          width: size.width * 0.4,
+          height: size.height * 0.4,
+          repeat: false,
+        );
+      },
     );
   }
 }

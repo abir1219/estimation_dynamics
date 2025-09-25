@@ -1,165 +1,179 @@
 import 'dart:convert';
 
 class CustomerModel {
-  String? odataContext;
-  DataResult? dataResult;
+  final String? odataContext;
+  final DataResult? dataResult;
+  final List<dynamic>? extensionProperties;
 
-  CustomerModel({this.odataContext, this.dataResult,});
+  CustomerModel({
+    this.odataContext,
+    this.dataResult,
+    this.extensionProperties,
+  });
 
-  CustomerModel.fromJson(Map<String, dynamic> json) {
-    odataContext = json['@odata.context'];
-    /*dataResult = json['DataResult'] != null
-        ? DataResult.fromJson(json['DataResult'])
-        : null;*/
+  factory CustomerModel.fromJson(Map<String, dynamic> json) {
+    dynamic decodedData;
+
     if (json['DataResult'] != null) {
-      final decodedData = json['DataResult'] is String
+      decodedData = json['DataResult'] is String
           ? jsonDecode(json['DataResult']) // decode string → Map
           : json['DataResult'];
-
-      dataResult = DataResult.fromJson(decodedData);
     }
+
+    return CustomerModel(
+      odataContext: json['@odata.context'],
+      dataResult: decodedData != null ? DataResult.fromJson(decodedData) : null,
+      extensionProperties: json['ExtensionProperties'] ?? [],
+    );
   }
 
+
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['@odata.context'] = odataContext;
-    if (dataResult != null) {
-      data['DataResult'] = dataResult!.toJson();
-    }
-    /*if (extensionProperties != null) {
-      data['ExtensionProperties'] =
-          extensionProperties!.map((v) => v.toJson()).toList();
-    }*/
-    return data;
+    return {
+      '@odata.context': odataContext,
+      'DataResult': dataResult?.toJson(),
+      'ExtensionProperties': extensionProperties,
+    };
   }
 }
 
 class DataResult {
-  int? status;
-  String? message;
-  String? remarks;
-  String? errorDetails;
-  OuterPayload? payload;
+  final int? status;
+  final String? message;
+  final String? remarks;
+  final String? errorDetails;
+  final Payload? payload;
 
-  DataResult(
-      {this.status,
-        this.message,
-        this.remarks,
-        this.errorDetails,
-        this.payload});
+  DataResult({
+    this.status,
+    this.message,
+    this.remarks,
+    this.errorDetails,
+    this.payload,
+  });
 
-  DataResult.fromJson(Map<String, dynamic> json) {
-    status = json['Status'];
-    message = json['Message'];
-    remarks = json['Remarks'];
-    errorDetails = json['ErrorDetails'];
-    payload = json['Payload'] != null
-        ? OuterPayload.fromJson(json['Payload'])
-        : null;
+  factory DataResult.fromJson(Map<String, dynamic> json) {
+    return DataResult(
+      status: json['Status'],
+      message: json['Message'],
+      remarks: json['Remarks'],
+      errorDetails: json['ErrorDetails'],
+      payload:
+      json['Payload'] != null ? Payload.fromJson(json['Payload']) : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['Status'] = status;
-    data['Message'] = message;
-    data['Remarks'] = remarks;
-    data['ErrorDetails'] = errorDetails;
-    if (payload != null) {
-      data['Payload'] = payload!.toJson();
-    }
-    return data;
+    return {
+      'Status': status,
+      'Message': message,
+      'Remarks': remarks,
+      'ErrorDetails': errorDetails,
+      'Payload': payload?.toJson(),
+    };
   }
-}
-
-class OuterPayload{
-  int? status;
-  String? message;
-  String? remarks;
-  String? errorDetails;
-  Payload? payload;
-
-  OuterPayload.fromJson(Map<String, dynamic> json) {
-    status = json['Status'];
-    message = json['Message'];
-    remarks = json['Remarks'];
-    errorDetails = json['ErrorDetails'];
-    payload = json['Payload'] != null
-        ? Payload.fromJson(json['Payload'])
-        : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['Status'] = status;
-    data['Message'] = message;
-    data['Remarks'] = remarks;
-    data['ErrorDetails'] = errorDetails;
-    if (payload != null) {
-      data['Payload'] = payload!.toJson();
-    }
-    return data;
-  }
-
 }
 
 class Payload {
-  List<Customer>? customer;
-  String? refNumber;
-  int? refType;
+  final int? status;
+  final String? message;
+  final String? remarks;
+  final String? errorDetails;
+  final PayloadData? payload;
 
-  Payload({this.customer, this.refNumber, this.refType});
+  Payload({
+    this.status,
+    this.message,
+    this.remarks,
+    this.errorDetails,
+    this.payload,
+  });
 
-  Payload.fromJson(Map<String, dynamic> json) {
-    if (json['Customer'] != null) {
-      customer = <Customer>[];
-      json['Customer'].forEach((v) {
-        customer!.add(Customer.fromJson(v));
-      });
-    }
-    refNumber = json['RefNumber'];
-    refType = json['RefType'];
+  factory Payload.fromJson(Map<String, dynamic> json) {
+    return Payload(
+      status: json['Status'],
+      message: json['Message'],
+      remarks: json['Remarks'],
+      errorDetails: json['ErrorDetails'],
+      payload:
+      json['Payload'] != null ? PayloadData.fromJson(json['Payload']) : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (customer != null) {
-      data['Customer'] = customer!.map((v) => v.toJson()).toList();
-    }
-    data['RefNumber'] = refNumber;
-    data['RefType'] = refType;
-    return data;
+    return {
+      'Status': status,
+      'Message': message,
+      'Remarks': remarks,
+      'ErrorDetails': errorDetails,
+      'Payload': payload?.toJson(),
+    };
+  }
+}
+
+class PayloadData {
+  final List<Customer>? customer;
+  final String? refNumber;
+  final int? refType;
+
+  PayloadData({
+    this.customer,
+    this.refNumber,
+    this.refType,
+  });
+
+  factory PayloadData.fromJson(Map<String, dynamic> json) {
+    return PayloadData(
+      customer: json['Customer'] != null
+          ? List<Customer>.from(
+          json['Customer'].map((c) => Customer.fromJson(c)))
+          : [],
+      refNumber: json['RefNumber'],
+      refType: json['RefType'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Customer': customer?.map((c) => c.toJson()).toList(),
+      'RefNumber': refNumber,
+      'RefType': refType,
+    };
   }
 }
 
 class Customer {
-  String? accountNumber;
-  String? fullName;
-  String? mobile;
-  String? email;
-  String? address;
+  final String? accountNumber;
+  final String? fullName;
+  final String? mobile;
+  final String? email;
+  final String? address;
 
-  Customer(
-      {this.accountNumber,
-        this.fullName,
-        this.mobile,
-        this.email,
-        this.address});
+  Customer({
+    this.accountNumber,
+    this.fullName,
+    this.mobile,
+    this.email,
+    this.address,
+  });
 
-  Customer.fromJson(Map<String, dynamic> json) {
-    accountNumber = json['AccountNumber'];
-    fullName = json['FullName'];
-    mobile = json['Mobile'];
-    email = json['Email'];
-    address = json['Address'];
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      accountNumber: json['AccountNumber'],
+      fullName: json['FullName'],
+      mobile: json['Mobile'],
+      email: json['Email'],
+      address: json['Address'],
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['AccountNumber'] = accountNumber;
-    data['FullName'] = fullName;
-    data['Mobile'] = mobile;
-    data['Email'] = email;
-    data['Address'] = address;
-    return data;
+    return {
+      'AccountNumber': accountNumber,
+      'FullName': fullName,
+      'Mobile': mobile,
+      'Email': email,
+      'Address': address,
+    };
   }
 }
