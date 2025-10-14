@@ -76,7 +76,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       ));
     } catch (error) {
       debugPrint("ScanItem_ERROR-->$error");
-      emit(const ProductState(status: ProductStatus.initial));
+      // emit(const ProductState(status: ProductStatus.initial));
+      emit(const ProductState(status: ProductStatus.submitError));
       // Optionally, you can add an error field in ProductState and emit here
     }
   }

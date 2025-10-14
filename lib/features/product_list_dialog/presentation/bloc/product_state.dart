@@ -41,7 +41,8 @@ enum ProductStatus {
   scanLoading,
   scanLoaded,
   submittedItems,
-  submitDone
+  submitDone,
+  submitError
 }
 
 class ProductState extends Equatable {

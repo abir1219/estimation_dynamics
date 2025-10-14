@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
@@ -140,6 +141,12 @@ class _ProductListDialogState extends State<ProductListDialog> {
                               final size = MediaQuery.of(context).size;
 
                               switch (state.status) {
+                                case ProductStatus.submitError:
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    _showAlertDialog();
+                                  });
+                                  return SizedBox.shrink();
+
                                 case ProductStatus.initial || ProductStatus.submitDone:
                                   return const SizedBox.shrink();
 
@@ -297,5 +304,22 @@ class _ProductListDialogState extends State<ProductListDialog> {
         ),
       ),
     );
+  }
+
+  _showAlertDialog() {
+    return AwesomeDialog(
+      context: context,
+      animType: AnimType.scale,
+      dialogType: DialogType.error,
+      body: Padding(padding: EdgeInsets.symmetric(horizontal: 6),
+      child: Text(
+        'SKU is not found as already scanned!',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontStyle: FontStyle.normal,color: Colors.black,fontSize: 16,fontWeight: FontWeight.w600),
+      ),),
+      title: 'This is Ignored',
+      desc:   'This is also Ignored',
+      btnOkOnPress: () {},
+    )..show();
   }
 }
