@@ -70,7 +70,7 @@ class SearchCustomerBloc
       (value) {
         debugPrint("VALUE--->$value");
         var customerModel = CustomerModel.fromJson(value);
-        debugPrint("customerModel--->${customerModel.dataResult!.payload!.payload!.customer!.length}");
+        // debugPrint("customerModel--->${customerModel.dataResult!.payload!.payload!.customer!.length}");
         emit(SearchCustomerLoaded(customerModel: customerModel));
       },
     ).onError(

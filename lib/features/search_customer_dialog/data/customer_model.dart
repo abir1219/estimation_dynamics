@@ -16,17 +16,18 @@ class CustomerModel {
 
     if (json['DataResult'] != null) {
       decodedData = json['DataResult'] is String
-          ? jsonDecode(json['DataResult']) // decode string → Map
+          ? jsonDecode(json['DataResult'])
           : json['DataResult'];
     }
 
     return CustomerModel(
       odataContext: json['@odata.context'],
-      dataResult: decodedData != null ? DataResult.fromJson(decodedData) : null,
+      dataResult: decodedData != null
+          ? DataResult.fromJson(Map<String, dynamic>.from(decodedData))
+          : null,
       extensionProperties: json['ExtensionProperties'] ?? [],
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -53,13 +54,16 @@ class DataResult {
   });
 
   factory DataResult.fromJson(Map<String, dynamic> json) {
+    dynamic payloadData = json['Payload'];
+
     return DataResult(
       status: json['Status'],
       message: json['Message'],
       remarks: json['Remarks'],
       errorDetails: json['ErrorDetails'],
-      payload:
-      json['Payload'] != null ? Payload.fromJson(json['Payload']) : null,
+      payload: payloadData is Map
+          ? Payload.fromJson(Map<String, dynamic>.from(payloadData))
+          : null, // handles empty string
     );
   }
 
@@ -69,7 +73,7 @@ class DataResult {
       'Message': message,
       'Remarks': remarks,
       'ErrorDetails': errorDetails,
-      'Payload': payload?.toJson(),
+      'Payload': payload?.toJson() ?? '',
     };
   }
 }
@@ -90,13 +94,16 @@ class Payload {
   });
 
   factory Payload.fromJson(Map<String, dynamic> json) {
+    dynamic payloadData = json['Payload'];
+
     return Payload(
       status: json['Status'],
       message: json['Message'],
       remarks: json['Remarks'],
       errorDetails: json['ErrorDetails'],
-      payload:
-      json['Payload'] != null ? PayloadData.fromJson(json['Payload']) : null,
+      payload: payloadData is Map
+          ? PayloadData.fromJson(Map<String, dynamic>.from(payloadData))
+          : null,
     );
   }
 
@@ -106,7 +113,7 @@ class Payload {
       'Message': message,
       'Remarks': remarks,
       'ErrorDetails': errorDetails,
-      'Payload': payload?.toJson(),
+      'Payload': payload?.toJson() ?? '',
     };
   }
 }
@@ -127,7 +134,7 @@ class PayloadData {
       customer: json['Customer'] != null
           ? List<Customer>.from(
           json['Customer'].map((c) => Customer.fromJson(c)))
-          : [],
+          : null,
       refNumber: json['RefNumber'],
       refType: json['RefType'],
     );

@@ -1,3 +1,4 @@
+import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -58,18 +59,21 @@ class AppWidgets {
                           ),
                         )
                       : Container(),
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.person_2_outlined,
-                        color: AppColors.TITLE_TEXT_COLOR,
-                        size: 24,
+                  GestureDetector(
+                    onTap: () => context.go(AppPages.LOGIN),
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.home,//person_2_outlined,
+                          color: AppColors.TITLE_TEXT_COLOR,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),

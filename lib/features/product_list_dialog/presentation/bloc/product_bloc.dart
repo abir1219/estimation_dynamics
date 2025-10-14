@@ -11,6 +11,7 @@ import '../../../../core/local/shared_preferences_helper.dart';
 import '../../../../core/utils/constant_variable.dart';
 import '../../../salesman_dialog/data/model/employee_model.dart';
 import '../../../search_customer_dialog/data/customer_model.dart';
+import '../../data/model/estimation_response_model.dart';
 import '../../data/model/product_model.dart';
 
 part 'product_event.dart';
@@ -36,15 +37,18 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     //selectedProduct.clear();
   }
 
+  List<ProductPayload> updatedList = [];
+
   FutureOr<void> _scanItem(
       ScanItemEvent event, Emitter<ProductState> emit) async {
     emit(state.copyWith(status: ProductStatus.scanLoading));
 
     // double lineNum = selectedProduct.length.toDouble() + 1;
-    double lineNum = state.productList!.length.toDouble() + 1;
+    // double lineNum = state.productList!.length.toDouble() + 1;
+    double lineNum = updatedList.length.toDouble() + 1;
 
     debugPrint("LINE_NUMBER--->$lineNum");
-    debugPrint("LENGTH--->${state.productList!.length}");
+    debugPrint("LENGTH--->${updatedList.length}");
 
     String jsonString = '''
   {
@@ -88,7 +92,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     debugPrint("state.productList_01-->${state.selectedProductList}");
     // Copy the current list from state
     //final updatedList = List<ProductPayload>.from(state.productList);
-    final updatedList = List<ProductPayload>.from(state.selectedProductList ?? []);
+    updatedList = List<ProductPayload>.from(state.selectedProductList ?? []);
 
     // Add new product
     updatedList.add(event.product!);
@@ -149,6 +153,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     final jsonString = jsonEncode(requestBody);
 
+    debugPrint("requestBody-->$requestBody");
+    debugPrint("jsonString-->$jsonString");
+
     Map<String, dynamic> header = {
       'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
@@ -160,10 +167,14 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     try {
       await _productRepository.scanItem(jsonString, header).then((value) {
         //final productModel = ProductModel.fromJson(value);
-        debugPrint("VALUE-->$value");
+        //debugPrint("VALUE-->${jsonDecode(value)}");
+        // var val = jsonDecode(value);
+        EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(value);
+        // final EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(jsonDecode(value));
 
         emit(state.copyWith(
           status: ProductStatus.submitDone,
+          estimationResponseModel: estimationResponseData,
           productList: [],
           selectedProductList: [],
           //scannedItem: productModel.dataResult!.payload,

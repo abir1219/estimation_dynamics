@@ -58,37 +58,36 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
         ),
-        builder: (context) =>
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  //margin: EdgeInsets.symmetric(horizontal: size.width * .02,),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: AppColors.HEADER_GRADIENT_START_COLOR,
-                  ),
-                  height: AppDimensions.getResponsiveHeight(context) * .08,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
+        builder: (context) => Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              //margin: EdgeInsets.symmetric(horizontal: size.width * .02,),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                color: AppColors.HEADER_GRADIENT_START_COLOR,
+              ),
+              height: AppDimensions.getResponsiveHeight(context) * .08,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  "Estimate Amount",
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.TITLE_TEXT_COLOR,
-                                      fontWeight: FontWeight.w300),
-                                ),
-                                /*Gap(MediaQuery.sizeOf(context).width * 0.004),
+                            const Text(
+                              "Estimate Amount",
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.TITLE_TEXT_COLOR,
+                                  fontWeight: FontWeight.w300),
+                            ),
+                            /*Gap(MediaQuery.sizeOf(context).width * 0.004),
                             InkWell(
                               onTap: () {
                                 showGeneralDialog(
@@ -130,69 +129,94 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                                 color: Colors.white,
                               ),
                             )*/
-                              ],
-                            ),
-                            BlocConsumer<ProductBloc, ProductState>(
-                              listener: (context, state) {
-                                // TODO: implement listener
-                              },
-                              builder: (context, state) {
-                                final totalAmount = ( //state.status == ProductStatus.submittedItems &&
-                                    //state.productList != null &&
-                                    state.selectedProductList!.isNotEmpty)
+                          ],
+                        ),
+                        BlocConsumer<ProductBloc, ProductState>(
+                          listener: (context, state) {
+                            // TODO: implement listener
+                          },
+                          builder: (context, state) {
+                            final totalAmount =
+                                ( //state.status == ProductStatus.submittedItems &&
+                                        //state.productList != null &&
+                                        state.selectedProductList!.isNotEmpty)
                                     ? state.totalAmount
                                     : 0.0;
 
-                                return Text(
-                                  "₹ $totalAmount",
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.TITLE_TEXT_COLOR,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                            return Text(
+                              "₹ $totalAmount",
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.TITLE_TEXT_COLOR,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal:
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal:
                               AppDimensions.getResponsiveWidth(context) * 0.01),
-                          child: BlocConsumer<ProductBloc, ProductState>(
-                            listener: (context, state) {
-                              if(state.status == ProductStatus.submitDone ){
-                                context.read<EstimationBloc>().add(ResetEstimationEvent());
-                                _showSuccessDialog();
-                                Future.delayed(Duration(milliseconds: 2300),() => navigatorKey.currentContext!.go(AppPages.DASHBOARD),);
-                              }
-                            },
-                            builder: (context, state) {
-                              return AppWidgets.customButton(
-                                btnName: "Submit",
-                                context: context,
-                                isLoading: state.status == ProductStatus.scanLoading,
-                                onClick: () {
-                                  // if(state.totalAmount > 0.0){
-                                  if(state.selectedProductList!.isNotEmpty){
-                                    context.read<ProductBloc>().add(SubmitProductEvent(selectedProductList: state.selectedProductList, refNo: refNumber, customer: customer, salesman: salesman));
-                                  }else{
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(content: Text("Please select product")));
-                                  }
+                      child: BlocConsumer<ProductBloc, ProductState>(
+                        listener: (context, state) {
+                          if (state.status == ProductStatus.submitDone) {
+                            context
+                                .read<EstimationBloc>()
+                                .add(ResetEstimationEvent());
+                            _showSuccessDialog();
+                            // Future.delayed(Duration(milliseconds: 2300),() => navigatorKey.currentContext!.go(AppPages.DASHBOARD),);
+                            Future.delayed(const Duration(milliseconds: 2500),
+                                () {
+                              if (!mounted) return;
+                              navigatorKey.currentContext!.go(
+                                AppPages.PDFVIEW,
+                                //extra: state.estimationResponseModel,
+                                extra: {
+                                  'estimationResponseModel':
+                                      state.estimationResponseModel,
+                                  'refNumber': refNumber,
                                 },
                               );
+                            });
+                          }
+                        },
+                        builder: (context, state) {
+                          return AppWidgets.customButton(
+                            btnName: "Submit",
+                            context: context,
+                            isLoading:
+                                state.status == ProductStatus.scanLoading,
+                            onClick: () {
+                              // if(state.totalAmount > 0.0){
+                              if (state.selectedProductList!.isNotEmpty) {
+                                context.read<ProductBloc>().add(
+                                    SubmitProductEvent(
+                                        selectedProductList:
+                                            state.selectedProductList,
+                                        refNo: refNumber,
+                                        customer: customer,
+                                        salesman: salesman));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content:
+                                            Text("Please select product")));
+                              }
                             },
-                          ),
-                        ),
+                          );
+                        },
                       ),
-                      Gap(AppDimensions.getResponsiveWidth(context) * 0.01),
-                    ],
+                    ),
                   ),
-                ),
-                /*Container(
+                  Gap(AppDimensions.getResponsiveWidth(context) * 0.01),
+                ],
+              ),
+            ),
+            /*Container(
               padding: const EdgeInsets.all(16.0),
               height: 200,
               child: Column(
@@ -211,7 +235,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                 ],
               ),
             ),*/
-                /* Positioned(
+            /* Positioned(
               top: -20,
               right: 16,
               child: Material(
@@ -229,8 +253,8 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                 ),
               ),
             ),*/
-              ],
-            ),
+          ],
+        ),
       ).then((_) => setState(() => _isDialogOpen = false));
     }
   }
@@ -341,9 +365,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
 
   Widget _buildTitleBar(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(top: MediaQuery
-          .sizeOf(context)
-          .height * 0.02),
+      padding: EdgeInsets.only(top: MediaQuery.sizeOf(context).height * 0.02),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -389,9 +411,9 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                       //     .read<ProductBloc>()
                       //     .add(ResetProductStateEvent());
                       return ProductListDialog(
-                        // productList: state.productList!,
-                        // index: index,
-                      );
+                          // productList: state.productList!,
+                          // index: index,
+                          );
                     },
                   );
                 }, //context.go(AppPages.ADD_ESTIMATION),
@@ -502,14 +524,15 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
         final size = MediaQuery.sizeOf(context);
 
         // ✅ Always check productList first
-        if (state.selectedProductList != null && state.selectedProductList!.isNotEmpty) {
+        if (state.selectedProductList != null &&
+            state.selectedProductList!.isNotEmpty) {
           debugPrint("ProductLength---> ${state.selectedProductList!.length}");
           return ListView.builder(
             shrinkWrap: true,
             itemCount: state.selectedProductList!.length,
             itemBuilder: (context, index) {
               final product = state.selectedProductList![index];
-              return _buildProductContainer(product,index, size ,() {});
+              return _buildProductContainer(product, index, size, () {});
             },
           );
         }
@@ -529,10 +552,12 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
     );
   }
 
-
-  Widget _buildProductContainer(ProductPayload product,int index,
-      Size size,
-      void Function() func,) {
+  Widget _buildProductContainer(
+    ProductPayload product,
+    int index,
+    Size size,
+    void Function() func,
+  ) {
     return GestureDetector(
       onTap: () => func(),
       child: Container(
@@ -562,12 +587,12 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                   // height: AppDimensions.getResponsiveHeight(context) * 0.02,
                   margin: EdgeInsets.symmetric(
                       vertical:
-                      AppDimensions.getResponsiveHeight(context) * .005,
+                          AppDimensions.getResponsiveHeight(context) * .005,
                       horizontal: size.width * .01),
                   padding: EdgeInsets.symmetric(
                       horizontal: size.width * .02,
                       vertical:
-                      AppDimensions.getResponsiveHeight(context) * .002),
+                          AppDimensions.getResponsiveHeight(context) * .002),
                   decoration: BoxDecoration(
                     color: AppColors.TITLE_TEXT_COLOR,
                     borderRadius: BorderRadius.circular(3),
@@ -625,7 +650,9 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                 GestureDetector(
                   onTap: () {
                     debugPrint("---DELETE---");
-                    context.read<ProductBloc>().add(DeleteProductStateEvent(index: index));
+                    context
+                        .read<ProductBloc>()
+                        .add(DeleteProductStateEvent(index: index));
                   },
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 5),

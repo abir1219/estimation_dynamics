@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/login_screen/presentation/login_screen.dart';
+import '../features/pdf_view_screen/presentation/pdfview_screen.dart';
+import '../features/product_list_dialog/data/model/estimation_response_model.dart';
 import '../features/splash_screen/presentation/splash_screen.dart';
 import '../main.dart';
 import 'app_pages.dart';
@@ -100,13 +102,17 @@ class AppRouters {
           ),
           // builder: (BuildContext context, GoRouterState state) =>
           //     const AddCustomerDialog(),
-        ),
+        ),*/
         GoRoute(
             path: AppPages.PDFVIEW,
             builder: (BuildContext context, GoRouterState state) {
-              final EstimationResponseModel estimationResponseModel = state.extra as EstimationResponseModel;
-              return PdfviewScreen(estimationResponseModel: estimationResponseModel);
-            }),*/
+              // final EstimationResponseModel estimationResponseModel = state.extra as EstimationResponseModel;
+              final extra = state.extra as Map<String, dynamic>;
+              final estimationResponseModel =
+              extra['estimationResponseModel'] as EstimationResponseModel;
+              final refNumber = extra['refNumber'] as String;
+              return PdfviewScreen(estimationResponseModel: estimationResponseModel,refNumber:refNumber);
+            }),
       ]);
 
   GoRouter get routers => _routers;

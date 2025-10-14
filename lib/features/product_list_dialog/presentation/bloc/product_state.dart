@@ -49,11 +49,13 @@ class ProductState extends Equatable {
   final ProductPayload? scannedItem;
   final List<ProductPayload>? productList;
   final List<ProductPayload>? selectedProductList;
+  final EstimationResponseModel? estimationResponseModel;
   final double totalAmount;
 
   const ProductState({
     this.status = ProductStatus.initial,
     this.scannedItem,
+    this.estimationResponseModel,
     this.productList = const[],
     this.selectedProductList = const[],
     this.totalAmount = 0.0,
@@ -63,6 +65,7 @@ class ProductState extends Equatable {
     ProductStatus? status,
     ProductPayload? scannedItem,
     List<ProductPayload>? productList,
+    EstimationResponseModel? estimationResponseModel,
     List<ProductPayload>? selectedProductList,
     double? totalAmount,
   }) {
@@ -70,6 +73,7 @@ class ProductState extends Equatable {
       status: status ?? this.status,
       scannedItem: scannedItem ?? this.scannedItem,
       productList: productList ?? this.productList,
+      estimationResponseModel: estimationResponseModel ?? this.estimationResponseModel,
       selectedProductList: selectedProductList ?? this.selectedProductList,
       totalAmount: totalAmount ?? this.totalAmount,
     );
@@ -79,6 +83,7 @@ class ProductState extends Equatable {
   List<Object?> get props => [
     status,
     scannedItem,
+    estimationResponseModel,
     productList,
     totalAmount,
   ];

@@ -157,25 +157,50 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
                                 color: AppColors.BUTTON_COLOR),
                           );
                         } else if (state is SearchCustomerLoaded) {
+                          debugPrint(
+                              "PAYLOAD--->${(state.customerModel.dataResult!.payload!.payload != null)}");
                           return state.customerModel.dataResult!.payload!
-                              .payload!.customer!.isNotEmpty?ListView.builder(
-                            itemCount: state.customerModel.dataResult!.payload!
-                                .payload!.customer!.length,
-                            itemBuilder: (context, index) {
-                              return _buildCustomerContainer(
-                                state.customerModel.dataResult!.payload!
-                                    .payload!.customer![index],
-                                size,
-                              );
-                            },
-                          ):Expanded(child: Center(child: Text(
-                            "No customer found",
-                            style: TextStyle(
-                              color: AppColors.DEEP_YELLOW_COLOR,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),));
+                                      .payload !=
+                                  null
+                              ? state.customerModel.dataResult!.payload!
+                                      .payload!.customer!.isNotEmpty
+                                  ? ListView.builder(
+                                      itemCount: state.customerModel.dataResult!
+                                          .payload!.payload!.customer!.length,
+                                      itemBuilder: (context, index) {
+                                        return _buildCustomerContainer(
+                                          state
+                                              .customerModel
+                                              .dataResult!
+                                              .payload!
+                                              .payload!
+                                              .customer![index],
+                                          size,
+                                        );
+                                      },
+                                    )
+                                  : Expanded(
+                                      child: Center(
+                                      child: Text(
+                                        "No customer found",
+                                        style: TextStyle(
+                                          color: AppColors.DEEP_YELLOW_COLOR,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ))
+                              : Expanded(
+                                  child: Center(
+                                  child: Text(
+                                    "No customer found",
+                                    style: TextStyle(
+                                      color: AppColors.DEEP_YELLOW_COLOR,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ));
                         } else if (state is SearchCustomerError) {
                           return Center(
                             child: Text(
@@ -225,7 +250,9 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
         "@@@@--->${customer.accountNumber} , ${customer.fullName} , ${customer.mobile}");
     return GestureDetector(
       onTap: () {
-        context.read<SearchCustomerBloc>().add(SelectCustomerDataEvent(customer: customer));
+        context
+            .read<SearchCustomerBloc>()
+            .add(SelectCustomerDataEvent(customer: customer));
         Navigator.pop(context);
       },
       child: Container(
