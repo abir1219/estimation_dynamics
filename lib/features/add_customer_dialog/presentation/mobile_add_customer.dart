@@ -85,11 +85,10 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
                       children: [
                         /*AppWidgets.buildField(
                                 size, "Customer Code", _customerCodeController),*/
-                        AppWidgets.textFieldContainer(
-                          controller: _customerNameController,hintString: "Customer Name",icon: null,),
-                        AppWidgets.textFieldNumberContainer( hintString:"Mobile Number",
-                            controller: _mobileNoTextEditingController, icon: null,maxLength: 10
-                            ),
+                        AppWidgets.textFieldContainer(controller: _customerNameController,hintString: "First Name",icon: null,),
+                        AppWidgets.textFieldContainer(controller: _customerNameController,hintString: "Last Name",icon: null,),
+                        AppWidgets.textFieldNumberContainer( hintString:"Mobile Number", controller: _mobileNoTextEditingController, icon: null,maxLength: 10),
+                        AppWidgets.textFieldNumberContainer( hintString:"Email", controller: _mobileNoTextEditingController, icon: null,maxLength: 10),
                         AppWidgets.textFieldContainer(
                           controller: _addressController,hintString: "Address",icon: null,),
                         AppWidgets.textFieldNumberContainer(
