@@ -51,7 +51,7 @@ class SearchCustomerBloc
     String jsonString = '''
   {
     "RequestVal": "{\\"Operation\\":\\"SEARCHCUSTOMER\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
-    "ObjStrVal": "{\\"CustomerId\\":\\"\\",\\"CustomerName\\":\\"\\",\\"RefNumber\\":\\"${event.refNumber}\\",\\"RefType\\":${ConstantVariable.REFTYPE},\\"SearchTerm\\":\\"${event.customerName}\\"}"
+    "ObjStrVal": "{\\"CustomerId\\":\\"\\",\\"CustomerName\\":\\"\\",\\"RefNumber\\":\\"${event.refNumber}\\",\\"RefType\\":${ConstantVariable.refType},\\"SearchTerm\\":\\"${event.customerName}\\"}"
 }
   ''';
 
@@ -59,7 +59,7 @@ class SearchCustomerBloc
     Map<String, dynamic> header = {
       'Authorization':
           'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
-      'oun': ConstantVariable.OperatingUnitNumber,
+      'oun': ConstantVariable.operatingUnitNumber,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
