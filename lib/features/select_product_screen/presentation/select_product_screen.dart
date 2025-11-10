@@ -144,7 +144,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                                     : 0.0;
 
                             return Text(
-                              "₹ $totalAmount",
+                              "₹ ${totalAmount.toStringAsFixed(2)}",
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: AppColors.TITLE_TEXT_COLOR,

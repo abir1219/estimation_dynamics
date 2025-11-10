@@ -1,4 +1,3 @@
-import 'package:estimation_dynamics/features/add_customer_dialog/presentation/mobile_add_customer.dart';
 import 'package:estimation_dynamics/features/add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 import 'package:estimation_dynamics/features/search_customer_dialog/data/customer_model.dart';
 import 'package:estimation_dynamics/features/search_customer_dialog/presentation/bloc/search_customer_bloc.dart';
@@ -9,7 +8,6 @@ import 'package:gap/gap.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../widgets/app_widgets.dart';
-import '../../view_customer_dialog/presentation/customer_details_dialog.dart';
 
 class MobileSearchCustomer extends StatefulWidget {
   const MobileSearchCustomer({super.key});
@@ -262,7 +260,7 @@ class _MobileSearchCustomerState extends State<MobileSearchCustomer> {
             vertical: AppDimensions.getResponsiveHeight(context) * .005),
         // padding: const EdgeInsets.symmetric(horizontal: 6), //,vertical: 2
         // padding: const EdgeInsets.only(left: 6), //,vertical: 2
-        height: AppDimensions.getResponsiveHeight(context) * 0.09,
+        //height: AppDimensions.getResponsiveHeight(context) * 0.09,
         decoration: BoxDecoration(
             color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
             border: Border.all(color: AppColors.TITLE_TEXT_COLOR)

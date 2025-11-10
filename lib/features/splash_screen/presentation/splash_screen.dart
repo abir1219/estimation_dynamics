@@ -1,4 +1,5 @@
 import 'package:estimation_dynamics/core/constants/app_colors.dart';
+import 'package:estimation_dynamics/main.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       await SharedPreferencesHelper.init();
                       SharedPreferencesHelper.saveString(
                           AppConstants.ACCESS_TOKEN, state.accessToken!);
-                      context.go(AppPages.LOGIN);
+                      navigatorKey.currentContext!.go(AppPages.LOGIN);
                     } else {
                       debugPrint("Access token is null");
                     }
@@ -114,14 +115,15 @@ class _SplashScreenState extends State<SplashScreen> {
     bool isExpired = await _checkAccessToken();
     debugPrint("isExpired==>$isExpired");
     if (isExpired) {
-      context.read<TokenBloc>().add(FetchTokenData());
+      navigatorKey.currentContext!.read<TokenBloc>().add(FetchTokenData());
     } else {
       redirect();
     }
   }
 
   void redirect() {
-    if (SharedPreferencesHelper.containsKey(AppConstants.APP_KEY)) {
+    context.go(AppPages.LOGIN);
+    /*if (SharedPreferencesHelper.containsKey(AppConstants.APP_KEY)) {
       Future.delayed(
           Duration(
             milliseconds: 2000,
@@ -130,7 +132,8 @@ class _SplashScreenState extends State<SplashScreen> {
           context.go(AppPages.DASHBOARD);
         }
       });
-    } else {
+    }
+    else {
       Future.delayed(
           Duration(
             milliseconds: 2000,
@@ -140,6 +143,6 @@ class _SplashScreenState extends State<SplashScreen> {
         }
       });
       context.go(AppPages.LOGIN);
-    }
+    }*/
   }
 }

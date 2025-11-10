@@ -1,9 +1,7 @@
 import 'package:estimation_dynamics/features/product_list_dialog/data/model/product_model.dart';
 import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 
 import '../../../core/constants/app_colors.dart';
@@ -62,11 +60,18 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     productIdController.text = widget.product.productId.toString();
     pieceController.text = widget.product.piece.toString();
     quantityController.text = widget.product.grossWeight.toString();
-    netWtController.text = widget.product.netweight.toString();
+    // netWtController.text = widget.product.netweight.toString();
+    double netWt = 0.0;
+    for(var ingredient in widget.product.ingredients){
+      if(ingredient.pUREQTY != 0){
+        netWt += ingredient.nETWEIGHT!;
+      }
+    }
+    netWtController.text = netWt.toString();
     netController.text = widget.product.netValue.toString();
     // netController.text = widget.productList[widget.index].nett!;
     rateController.text = widget.product.rate.toString();
-    makingRateController.text = widget.product.makingRate.toString();
+    makingRateController.text = (widget.product.makingRate + widget.product.wastageAmount).toString();
     // stoneValueController.text = widget.product.productId.toString();
     // diamondValueController.text = widget.productList[widget.index].diaVal!;
     calculationValue.text = widget.product.cvalue.toString();

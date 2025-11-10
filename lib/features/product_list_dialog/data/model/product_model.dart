@@ -81,7 +81,7 @@ class ProductPayload {
   final double taxPercent;
   final double taxAmount;
   final double lineTotal;
-  final List<dynamic> ingredients;
+  final List<INGREDIENTS> ingredients;
   final TransactionStr transactionStr;
   final String salesperson;
   final int productId;
@@ -156,7 +156,12 @@ class ProductPayload {
     taxPercent: (json["TAXPERCENT"] ?? 0).toDouble(),
     taxAmount: (json["TAXAMOUNT"] ?? 0).toDouble(),
     lineTotal: (json["LINETOTAL"] ?? 0).toDouble(),
-    ingredients: List<dynamic>.from(json["INGREDIENTS"] ?? []),
+    // ingredients: List<INGREDIENTS>.from(json["INGREDIENTS"] ?? []),
+    ingredients: (json["INGREDIENTS"] != null)
+        ? List<INGREDIENTS>.from(
+        (json["INGREDIENTS"] as List)
+            .map((x) => INGREDIENTS.fromJson(x as Map<String, dynamic>)))
+        : [],
     transactionStr: TransactionStr.fromJson(
       jsonDecode(json["TRANSACTIONSTR"] ?? '{}'),
     ),
@@ -304,3 +309,111 @@ class DiscInformation {
     "DiscountType": discountType,
   };
 }
+class INGREDIENTS {
+  String? iTEMID;
+  double? pIECE;
+  double? nETWEIGHT;
+  double? rATE;
+  double? cVALUE;
+  double? rATEDIFFDISC;
+  double? nETVALUE;
+  double? pUREQTY;
+  String? uNIT;
+
+  INGREDIENTS({
+    this.iTEMID,
+    this.pIECE,
+    this.nETWEIGHT,
+    this.rATE,
+    this.cVALUE,
+    this.rATEDIFFDISC,
+    this.nETVALUE,
+    this.pUREQTY,
+    this.uNIT,
+  });
+
+  factory INGREDIENTS.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is int) return value.toDouble();
+      if (value is double) return value;
+      return double.tryParse(value.toString()) ?? 0.0;
+    }
+
+    return INGREDIENTS(
+      iTEMID: json['ITEMID']?.toString(),
+      pIECE: parseDouble(json['PIECE']),
+      nETWEIGHT: parseDouble(json['NETWEIGHT']),
+      rATE: parseDouble(json['RATE']),
+      cVALUE: parseDouble(json['CVALUE']),
+      rATEDIFFDISC: parseDouble(json['RATEDIFFDISC']),
+      nETVALUE: parseDouble(json['NETVALUE']),
+      pUREQTY: parseDouble(json['PUREQTY']),
+      uNIT: json['UNIT']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'ITEMID': iTEMID,
+      'PIECE': pIECE,
+      'NETWEIGHT': nETWEIGHT,
+      'RATE': rATE,
+      'CVALUE': cVALUE,
+      'RATEDIFFDISC': rATEDIFFDISC,
+      'NETVALUE': nETVALUE,
+      'PUREQTY': pUREQTY,
+      'UNIT': uNIT,
+    };
+  }
+}
+
+/*
+class INGREDIENTS {
+  String? iTEMID;
+  double? pIECE;
+  double? nETWEIGHT;
+  double? rATE;
+  double? cVALUE;
+  double? rATEDIFFDISC;
+  double? nETVALUE;
+  double? pUREQTY;
+  String? uNIT;
+
+  INGREDIENTS(
+      {this.iTEMID,
+        this.pIECE,
+        this.nETWEIGHT,
+        this.rATE,
+        this.cVALUE,
+        this.rATEDIFFDISC,
+        this.nETVALUE,
+        this.pUREQTY,
+        this.uNIT});
+
+  INGREDIENTS.fromJson(Map<String, dynamic> json) {
+    iTEMID = json['ITEMID'];
+    pIECE = json['PIECE'];
+    nETWEIGHT = json['NETWEIGHT'];
+    rATE = json['RATE'];
+    cVALUE = json['CVALUE'];
+    rATEDIFFDISC = json['RATEDIFFDISC'];
+    nETVALUE = json['NETVALUE'];
+    pUREQTY = json['PUREQTY'];
+    uNIT = json['UNIT'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['ITEMID'] = iTEMID;
+    data['PIECE'] = pIECE;
+    data['NETWEIGHT'] = nETWEIGHT;
+    data['RATE'] = rATE;
+    data['CVALUE'] = cVALUE;
+    data['RATEDIFFDISC'] = rATEDIFFDISC;
+    data['NETVALUE'] = nETVALUE;
+    data['PUREQTY'] = pUREQTY;
+    data['UNIT'] = uNIT;
+    return data;
+  }
+}*/
