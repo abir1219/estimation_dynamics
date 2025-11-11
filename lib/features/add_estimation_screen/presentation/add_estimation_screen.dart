@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:estimation_dynamics/features/add_customer_dialog/presentation/mobile_add_customer.dart';
 import 'package:estimation_dynamics/features/add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:flutter/cupertino.dart';
@@ -145,7 +146,7 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                             Positioned(
                               right: 0,
                               left: 0,
-                              top: AppDimensions.getResponsiveHeight(context) * 0.13,
+                              //top: AppDimensions.getResponsiveHeight(context) * 0.13,
                               child: Container(
                                 margin: EdgeInsets.symmetric(
                                   horizontal: AppDimensions.getResponsiveWidth(context) * 0.02,
@@ -158,6 +159,75 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                 child: Column(
                                   spacing: AppDimensions.getResponsiveHeight(context) * 0.02,
                                   children: [
+                                    Row(
+                                      // mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Expanded(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: AppDimensions.getResponsiveWidth(context) * 0, //.04
+                                            ),
+                                            child: AppWidgets().buildCustomerTab(
+                                              MediaQuery.sizeOf(context),
+                                              "search.svg",
+                                              "Search Customer",
+                                                  () {
+                                                showDialog(
+                                                  context: context,
+                                                  barrierDismissible: true,
+                                                  builder: (context) {
+                                                    context
+                                                        .read<SearchCustomerBloc>()
+                                                        .add(ResetSearchCustomerStateEvent());
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(8)),
+                                                      insetPadding: EdgeInsets.symmetric(
+                                                        horizontal: MediaQuery.sizeOf(context).width * 0.02,
+                                                        vertical: AppDimensions.getResponsiveHeight(context) * 0.01,
+                                                      ),
+                                                      child: const MobileSearchCustomer(),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: AppDimensions.getResponsiveWidth(context) * 0,//.04
+                                            ),
+                                            child: AppWidgets().buildCustomerTab(
+                                              MediaQuery.sizeOf(context),
+                                              "plus_circle.svg",
+                                              "Add Customer",
+                                                  () {
+                                                showDialog(
+                                                  context: context,
+                                                  barrierDismissible: true,
+                                                  builder: (context) {
+                                                    context
+                                                        .read<SearchCustomerBloc>()
+                                                        .add(ResetSearchCustomerStateEvent());
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(8)),
+                                                      insetPadding: EdgeInsets.symmetric(
+                                                        horizontal: MediaQuery.sizeOf(context).width * 0.02,
+                                                        vertical: AppDimensions.getResponsiveHeight(context) * 0.01,
+                                                      ),
+                                                      child: const MobileAddCustomer(),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     AppWidgets.textFieldContainer(
                                       icon: null,
                                       isEnabled: false,
@@ -227,7 +297,7 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                 ),
                               ),
                             ),
-                            Positioned(
+                            /*Positioned(
                               top: 0,
                               left: 0,
                               right: 0,
@@ -266,9 +336,41 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                       ),
                                     ),
                                   ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: AppDimensions.getResponsiveWidth(context) * 0.04,
+                                      ),
+                                      child: AppWidgets().buildCustomerTab(
+                                        MediaQuery.sizeOf(context),
+                                        "plus_circle.svg",
+                                        "Add Customer",
+                                            () {
+                                          showDialog(
+                                            context: context,
+                                            barrierDismissible: true,
+                                            builder: (context) {
+                                              context
+                                                  .read<SearchCustomerBloc>()
+                                                  .add(ResetSearchCustomerStateEvent());
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.circular(8)),
+                                                insetPadding: EdgeInsets.symmetric(
+                                                  horizontal: MediaQuery.sizeOf(context).width * 0.02,
+                                                  vertical: AppDimensions.getResponsiveHeight(context) * 0.01,
+                                                ),
+                                                child: const MobileAddCustomer(),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
-                            ),
+                            ),*/
                           ],
                         );
                       } else {

@@ -70,7 +70,7 @@ class AppWidgets {
                       ),
                       child: Center(
                         child: Icon(
-                          Icons.home,//person_2_outlined,
+                          Icons.home, //person_2_outlined,
                           color: AppColors.TITLE_TEXT_COLOR,
                           size: 24,
                         ),
@@ -136,12 +136,11 @@ class AppWidgets {
     );
   }
 
-  static Widget textFieldContainer({
-    required IconData? icon,
-    required String hintString,
-    required TextEditingController? controller,
-    bool isEnabled = true
-  }) {
+  static Widget textFieldContainer(
+      {required IconData? icon,
+      required String hintString,
+      required TextEditingController? controller,
+      bool isEnabled = true}) {
     debugPrint("HINT--->$hintString");
     return Container(
       decoration: BoxDecoration(
@@ -186,8 +185,11 @@ class AppWidgets {
       {required IconData? icon,
       required String hintString,
       required TextEditingController? controller,
-      required int maxLength}) {
+      int? maxLength,
+      bool isEmail = false}) {
     debugPrint("HINT--->$hintString");
+    debugPrint("isEmail--->$isEmail");
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
@@ -197,9 +199,9 @@ class AppWidgets {
       child: TextField(
         controller: controller,
         style: const TextStyle(color: Colors.black),
-        keyboardType: TextInputType.number,
+        keyboardType: isEmail?TextInputType.emailAddress:TextInputType.phone,
         maxLength: maxLength,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        inputFormatters: !isEmail?[FilteringTextInputFormatter.digitsOnly]:null,
         decoration: InputDecoration(
           hintText: hintString,
           counterText: "",
@@ -508,7 +510,8 @@ class AppWidgets {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),
-        height: size.height * 0.1, // 0.12
+        //height: size.height * 0.1, // 0.12
+        height: size.height * 0.16, // 0.12
         // width: size.width * 0.32,
         decoration: BoxDecoration(
           color: AppColors.CUSTOMER_TAB_BACKGROUND_COLOR,
@@ -522,7 +525,7 @@ class AppWidgets {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center, // keeps things aligned
           children: [
@@ -550,7 +553,7 @@ class AppWidgets {
               title,
               style: const TextStyle(
                 color: AppColors.TITLE_TEXT_COLOR,
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
@@ -771,21 +774,22 @@ class AppWidgets {
   }*/
 
   static Widget buildSearchableField(
-      Size size,
-      String hint,
-      TextEditingController? controller, {
-        bool isEnabled = false,
-        void Function()? func,
-        void Function(String sku)? change,
-        String? icons = "assets/images/search.svg",
-      }) {
+    Size size,
+    String hint,
+    TextEditingController? controller, {
+    bool isEnabled = false,
+    void Function()? func,
+    void Function(String sku)? change,
+    String? icons = "assets/images/search.svg",
+  }) {
     return Container(
       margin: EdgeInsets.symmetric(
         vertical:
-        AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) *
-            .005,
+            AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) *
+                .005,
         horizontal:
-        AppDimensions.getResponsiveWidth(navigatorKey.currentContext!) * 0.005,
+            AppDimensions.getResponsiveWidth(navigatorKey.currentContext!) *
+                0.005,
       ),
       padding: EdgeInsets.only(
         left: AppDimensions.getResponsiveWidth(navigatorKey.currentContext!) *
@@ -804,12 +808,11 @@ class AppWidgets {
             child: TextField(
               controller: controller,
               onChanged: (value) {
-                  debugPrint("SKU ID ---> $value");
-                  change?.call(
-                    value
-                  );
-                },
-              enabled: isEnabled, // ✅ this is the correct property
+                debugPrint("SKU ID ---> $value");
+                change?.call(value);
+              },
+              enabled: isEnabled,
+              // ✅ this is the correct property
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16,
@@ -823,7 +826,7 @@ class AppWidgets {
                   fontWeight: FontWeight.w400,
                 ),
                 contentPadding:
-                const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
                 border: InputBorder.none,
               ),
             ),
@@ -831,16 +834,18 @@ class AppWidgets {
           GestureDetector(
             onTap: func,
             child: Container(
-              width: AppDimensions.getResponsiveWidth(navigatorKey.currentContext!) *
+              width: AppDimensions.getResponsiveWidth(
+                      navigatorKey.currentContext!) *
                   0.14,
-              height: AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) *
+              height: AppDimensions.getResponsiveHeight(
+                      navigatorKey.currentContext!) *
                   0.075,
               color: AppColors.TITLE_TEXT_COLOR,
               child: Center(
                 child: SvgPicture.asset(
                   icons!,
                   colorFilter:
-                  const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                      const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                 ),
               ),
             ),
@@ -874,14 +879,14 @@ class AppWidgets {
         decoration: BoxDecoration(
           color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
           // borderRadius: BorderRadius.circular(4),
-          *//*boxShadow: [
+          */ /*boxShadow: [
             BoxShadow(
               color: Colors.grey.withValues(alpha: 0.3),
               spreadRadius: 1.2,
               blurRadius: 0.5,
               offset: const Offset(1.0, 1.0),
             ),
-          ],*//*
+          ],*/ /*
           border: Border.all(
             color: AppColors.TITLE_TEXT_COLOR,
             width: 1,
@@ -918,10 +923,10 @@ class AppWidgets {
                   0.075, //48,
               decoration: const BoxDecoration(
                 color: AppColors.TITLE_TEXT_COLOR,
-                *//*borderRadius: BorderRadius.only(
+                */ /*borderRadius: BorderRadius.only(
                   topRight: Radius.circular(4),
                   bottomRight: Radius.circular(4),
-                ),*//*
+                ),*/ /*
               ),
               child: Center(
                 child: SvgPicture.asset(
@@ -1022,18 +1027,19 @@ class AppWidgets {
 
   static Widget customMobileButton(
       {required Size size,
-        required String btnName,
-        Color color = AppColors.DEEP_YELLOW_COLOR,
-        bool isLoading = false,
-        void Function()? func,
-        Color textColor = Colors.white}) {
+      required String btnName,
+      Color color = AppColors.DEEP_YELLOW_COLOR,
+      bool isLoading = false,
+      void Function()? func,
+      Color textColor = Colors.white}) {
     return GestureDetector(
       onTap: () => func!(),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
         height:
-        // AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) * .04,
-        AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) * .05,
+            // AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) * .04,
+            AppDimensions.getResponsiveHeight(navigatorKey.currentContext!) *
+                .05,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),
           color: color,
@@ -1041,16 +1047,16 @@ class AppWidgets {
         child: Center(
           child: isLoading
               ? LoadingAnimationWidget.staggeredDotsWave(
-              color: textColor, size: 22)
+                  color: textColor, size: 22)
               : Text(
-            btnName,
-            style: TextStyle(fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textColor),
-          ),
+                  btnName,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: textColor),
+                ),
         ),
       ),
     );
   }
-
 }
