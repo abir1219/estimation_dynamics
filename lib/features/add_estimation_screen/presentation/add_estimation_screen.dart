@@ -117,6 +117,10 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                           debugPrint("CUSTOMER--->${state.customer}");
                           _customerNameController.text = state.customer!.fullName ?? "";
                         }
+                        if (state.customerData != null) {
+                          debugPrint("CUSTOMER--->${state.customerData}");
+                          _customerNameController.text = state.customerData!.fullName ?? "";
+                        }
 
                         // Update Salesman Name if available
                         if (state.salesman != null) {
@@ -206,7 +210,7 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                                   () {
                                                 showDialog(
                                                   context: context,
-                                                  barrierDismissible: true,
+                                                  barrierDismissible: false,
                                                   builder: (context) {
                                                     context
                                                         .read<SearchCustomerBloc>()
@@ -279,7 +283,7 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
                                             btnName: 'Next',
                                             context: context,
                                             onClick: () {
-                                              if(state.customer == null){
+                                              if(state.customer == null && state.customerData == null){
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(SnackBar(content: Text("Select Customer to continue.")));
                                               }else if(state.salesman == null){

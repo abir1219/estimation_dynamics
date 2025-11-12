@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/local/shared_preferences_helper.dart';
 import '../../../../core/utils/constant_variable.dart';
+import '../../../add_customer_dialog/models/add_customer_model.dart';
 import '../../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 
 part 'search_customer_event.dart';
@@ -22,10 +23,12 @@ class SearchCustomerBloc
 
   final EstimationBloc estimationBloc; // inject the other bloc
 
-  SearchCustomerBloc(this.customerRepository,this.estimationBloc) : super(SearchCustomerInitial()) {
+  SearchCustomerBloc(this.customerRepository, this.estimationBloc)
+      : super(SearchCustomerInitial()) {
     on<FetchCustomerEvent>(_fetchCustomer);
     on<ResetSearchCustomerStateEvent>(_resetCustomerState);
     on<SelectCustomerDataEvent>(_selectCustomer);
+    on<AddCustomerEvent>(_addCustomer);
   }
 
   FutureOr<void> _selectCustomer(
@@ -38,8 +41,8 @@ class SearchCustomerBloc
     estimationBloc.add(SetSelectedCustomerEvent(customer: event.customer));
   }
 
-  FutureOr<void> _resetCustomerState(
-      ResetSearchCustomerStateEvent event, Emitter<SearchCustomerState> emit) async {
+  FutureOr<void> _resetCustomerState(ResetSearchCustomerStateEvent event,
+      Emitter<SearchCustomerState> emit) async {
     emit(SearchCustomerInitial());
   }
 
@@ -80,4 +83,47 @@ class SearchCustomerBloc
       },
     );
   }
+
+  FutureOr<void> _addCustomer(
+      AddCustomerEvent event, Emitter<SearchCustomerState> emit) async {
+    emit(SearchCustomerLoading());
+
+    String jsonString = '''
+  {
+    "RequestVal": "{\\"Operation\\":\\"CREATECUSTOMER\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+    "ObjStrVal": "{\\"Phone\\": \\"${event.phoneNo}\\",\\"Email\\": \\"${event.email}\\",\\"FirstName\\": \\"${event.firstName}\\",\\"LastName\\": \\"${event.lastName}\\",\\"PanCard\\": \\"${event.panCard}\\"}"
+  }
+  ''';
+
+    // Map<String, dynamic> body = json.decode(jsonString);
+    Map<String, dynamic> header = {
+      'Authorization':
+          'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
+      'oun': ConstantVariable.operatingUnitNumber,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    debugPrint("BODY-->$jsonString "); //and Convert-->$body
+
+    await customerRepository.fetchCustomer(jsonString, header).then(
+      (value) {
+        debugPrint("VALUE--->$value");
+        var customer = AddCustomerModel.fromJson(value);
+        // debugPrint("customerModel--->${customerModel.dataResult!.payload!.payload!.customer!.length}");
+        emit(SelectCustomerDataState(
+            customerData: customer.dataResult!.payload!.payload!.customer!,
+            customer: null));
+
+        estimationBloc.add(SetSelectedCustomerEvent(
+            customerData: customer.dataResult!.payload!.payload!.customer!,customer: null));
+      },
+    ).onError(
+      (error, stackTrace) {
+        debugPrint("CREATE_CUSTOMER_ERROR--->$error");
+        emit(SearchCustomerError(error.toString()));
+      },
+    );
+  }
 }
+//AddCustomerEvent>(_addCustomer

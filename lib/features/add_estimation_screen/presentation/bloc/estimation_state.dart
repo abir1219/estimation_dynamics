@@ -11,6 +11,7 @@ final class EstimationInitial extends EstimationState {
 }
 final class EstimationDataState extends EstimationState {
   final Customer? customer;
+  final CustomerData? customerData;
   final SalesmanPayload? salesman;
   final String? refNumber;
   final SalesmanModel? salesmanModel;
@@ -21,6 +22,7 @@ final class EstimationDataState extends EstimationState {
 
   const EstimationDataState({
     this.customer,
+    this.customerData,
     this.salesman,
     this.refNumber,
     this.salesmanModel,
@@ -32,6 +34,7 @@ final class EstimationDataState extends EstimationState {
 
   EstimationDataState copyWith({
     Customer? customer,
+    CustomerData? customerData,
     SalesmanPayload? salesman,
     String? refNumber,
     SalesmanModel? salesmanModel,
@@ -42,6 +45,7 @@ final class EstimationDataState extends EstimationState {
   }) {
     return EstimationDataState(
       customer: customer ?? this.customer,
+      customerData: customerData ?? this.customerData,
       salesman: salesman ?? this.salesman,
       refNumber: refNumber ?? this.refNumber,
       salesmanModel: salesmanModel ?? this.salesmanModel,
@@ -55,6 +59,7 @@ final class EstimationDataState extends EstimationState {
   @override
   List<Object?> get props => [
     customer,
+    customerData,
     salesman,
     refNumber,
     salesmanModel,

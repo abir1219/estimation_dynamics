@@ -1,5 +1,7 @@
 import 'package:estimation_dynamics/core/constants/app_dimensions.dart';
+import 'package:estimation_dynamics/features/search_customer_dialog/presentation/bloc/search_customer_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
@@ -30,6 +32,14 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
     _panController.dispose();
     _emailController.dispose();
     _mobileNoTextEditingController.dispose();
+  }
+
+  void resetData() {
+    _firstNameController.text = "";
+    _lastNameController.text = "";
+    _emailController.text = "";
+    _mobileNoTextEditingController.text = "";
+    _panController.text = "";
   }
 
   @override
@@ -93,7 +103,7 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing:
-                          AppDimensions.getResponsiveHeight(context) * 0.02,
+                      AppDimensions.getResponsiveHeight(context) * 0.02,
                       children: [
                         /*AppWidgets.buildField(
                                 size, "Customer Code", _customerCodeController),*/
@@ -122,16 +132,17 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
                           controller: _panController,
                           hintString: "Pan Card",
                           icon: null,
+                          isEmail: true,
                           maxLength: 10,
                         ),
                       ],
                     ),
                   ),
                 ),
-                Gap(size.height * .01),
+                //Gap(size.height * .01),
                 Container(
                   color: Colors.transparent,
-                  padding: EdgeInsets.symmetric(horizontal: size.height * .02),
+                  padding: EdgeInsets.symmetric(horizontal: size.width * .02),
                   child: Row(
                     spacing: AppDimensions.getResponsiveWidth(context) * 0.01,
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -139,22 +150,49 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
                       Expanded(
                         child: AppWidgets.customButton(
                           context: context,
-                          onClick: () {},
+                          onClick: () {
+                            resetData();
+                          },
                           btnName: 'Reset',
                         ),
                       ),
                       Expanded(
                         child: AppWidgets.customButton(
                           context: context,
-                          onClick: () {},
+                          onClick: () => Navigator.pop(context),
                           btnName: 'Cancel',
                         ),
                       ),
                       Expanded(
-                        child: AppWidgets.customButton(
-                          context: context,
-                          onClick: () {},
-                          btnName: 'Save',
+                        child: BlocConsumer<SearchCustomerBloc, SearchCustomerState>(
+                          listener: (context, state) {
+                            if(state is SelectCustomerDataState){
+                              Navigator.pop(context);
+                            }
+                          },
+                          builder: (context, state) {
+                            return AppWidgets.customButton(
+                              context: context,
+                              isLoading: state
+                              is SearchCustomerLoading
+                                  ? true
+                                  : false,
+                              onClick: () =>
+                                  context.read<SearchCustomerBloc>().add(
+                                    AddCustomerEvent(
+                                      firstName: _firstNameController.text
+                                          .trim(),
+                                      lastName: _lastNameController.text.trim(),
+                                      email: _emailController.text.trim(),
+                                      phoneNo: _mobileNoTextEditingController
+                                          .text
+                                          .trim(),
+                                      panCard: _panController.text.trim(),
+                                    ),
+                                  ),
+                              btnName: 'Save',
+                            );
+                          },
                         ),
                       ),
                     ],

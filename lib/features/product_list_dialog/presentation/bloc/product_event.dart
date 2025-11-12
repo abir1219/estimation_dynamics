@@ -7,7 +7,7 @@ sealed class ProductEvent extends Equatable {
 final class ScanItemEvent extends ProductEvent {
   final String? itemNo;
   final String? refNo;
-  final Customer? customer;
+  final dynamic customer;
   final SalesmanPayload? salesman;
 
   const ScanItemEvent(

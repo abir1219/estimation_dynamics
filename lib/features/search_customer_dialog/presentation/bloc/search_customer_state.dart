@@ -32,10 +32,11 @@ final class SearchCustomerError extends SearchCustomerState {
 }
 
 final class SelectCustomerDataState extends SearchCustomerState {
-  final Customer customer;
+  final Customer? customer;
+  final CustomerData? customerData;
 
-  SelectCustomerDataState({required this.customer});
+  SelectCustomerDataState({required this.customer,this.customerData});
 
   @override
-  List<Object?> get props => [customer];
+  List<Object?> get props => [customer,customerData];
 }

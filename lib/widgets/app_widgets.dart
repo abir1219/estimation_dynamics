@@ -199,7 +199,7 @@ class AppWidgets {
       child: TextField(
         controller: controller,
         style: const TextStyle(color: Colors.black),
-        keyboardType: isEmail?TextInputType.emailAddress:TextInputType.phone,
+        keyboardType: !isEmail?TextInputType.phone:TextInputType.emailAddress,
         maxLength: maxLength,
         inputFormatters: !isEmail?[FilteringTextInputFormatter.digitsOnly]:null,
         decoration: InputDecoration(

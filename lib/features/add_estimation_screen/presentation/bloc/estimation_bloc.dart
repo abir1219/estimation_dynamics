@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:estimation_dynamics/features/add_customer_dialog/models/add_customer_model.dart';
 import 'package:estimation_dynamics/features/salesman_dialog/data/model/employee_model.dart';
 import 'package:flutter/material.dart';
 
@@ -21,9 +22,9 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
 
   EstimationBloc(this._estimationRepository) : super(EstimationDataState()) {
     on<GenerateEstimationNoEvent>(_generateEstimationNumber);
-    on<SetSelectedCustomerEvent>(_onSetSelectedCustomer); // 👈 register handler
-    on<ResetEstimationEvent>(_onResetEstimation); // 👈 register handler
-    on<FetchSalesmanEvent>(_onFetchSalesman); // 👈 register handler
+    on<SetSelectedCustomerEvent>(_onSetSelectedCustomer);
+    on<ResetEstimationEvent>(_onResetEstimation);
+    on<FetchSalesmanEvent>(_onFetchSalesman);
     on<SearchEmployeeEvent>(_searchEmployee);
     on<SelectSalesmanEvent>(_onSetSelectSalesman);
     on<ResetSalesmanStateEvent>(_resetSalesmanState);
@@ -228,7 +229,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
   FutureOr<void> _onSetSelectedCustomer(
       SetSelectedCustomerEvent event, Emitter<EstimationState> emit) {
     final current = state as EstimationDataState;
-    emit(current.copyWith(customer: event.customer));
+    emit(current.copyWith(customer: event.customer,customerData: event.customerData));
   }
 
   FutureOr<void> _onSetSelectSalesman(

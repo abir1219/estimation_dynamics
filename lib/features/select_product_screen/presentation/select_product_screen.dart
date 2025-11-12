@@ -15,7 +15,6 @@ import '../../../widgets/app_widgets.dart';
 import '../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 import '../../product_list_dialog/presentation/bloc/product_bloc.dart';
 import '../../salesman_dialog/data/model/employee_model.dart';
-import '../../search_customer_dialog/data/customer_model.dart';
 
 class SelectProductScreen extends StatefulWidget {
   const SelectProductScreen({super.key});
@@ -28,7 +27,9 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
   bool _isDialogOpen = false;
 
   String? refNumber = "";
-  late final Customer customer;
+  // late final Customer customer;
+  late final dynamic customer;
+  // late final CustomerData customerData;
   late final SalesmanPayload salesman;
 
   @override
@@ -40,8 +41,14 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
     if (estimationState is EstimationDataState) {
       debugPrint("Ref Number: ${estimationState.refNumber}");
       refNumber = estimationState.refNumber;
-      debugPrint("Customer: ${estimationState.customer}");
-      customer = estimationState.customer!;
+      if(estimationState.customer!= null){
+        debugPrint("Customer: ${estimationState.customer}");
+        customer = estimationState.customer!;
+      }else{
+        debugPrint("Customer: ${estimationState.customerData}");
+        // customerData = estimationState.customerData!;
+        customer = estimationState.customerData!;
+      }
       debugPrint("Salesman: ${estimationState.salesman}");
       salesman = estimationState.salesman!;
     }

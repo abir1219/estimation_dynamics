@@ -8,4 +8,8 @@ class CustomerRepository {
   Future<dynamic> fetchCustomer(var body, var header) async {
     return await _apiClient.postApi(ApiEndPoints.BASE_URL, body, header);
   }
+
+  Future<dynamic> addCustomer(var body, var header) async {
+    return await _apiClient.postApi(ApiEndPoints.BASE_URL, body, header);
+  }
 }

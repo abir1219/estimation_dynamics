@@ -33,11 +33,12 @@ class SearchEmployeeEvent extends EstimationEvent {
 }
 
 final class SetSelectedCustomerEvent extends EstimationEvent {
-  final Customer customer;
-  const SetSelectedCustomerEvent({required this.customer});
+  final Customer? customer;
+  final CustomerData? customerData;
+  const SetSelectedCustomerEvent({required this.customer,this.customerData});
 
   @override
-  List<Object?> get props => [customer];
+  List<Object?> get props => [customer,customerData];
 }
 
 final class ResetEstimationEvent extends EstimationEvent {

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:estimation_dynamics/features/product_list_dialog/data/model/product_model.dart';
 import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/features/salesman_dialog/data/model/employee_model.dart';
-import 'package:estimation_dynamics/features/search_customer_dialog/data/customer_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,7 +25,9 @@ class ProductListDialog extends StatefulWidget {
 
 class _ProductListDialogState extends State<ProductListDialog> {
   String? refNumber = "";
-  late final Customer customer;
+  // late final Customer customer;
+  late final dynamic customer;
+  // late final CustomerData customerData;
   late final SalesmanPayload salesman;
 
   @override
@@ -38,8 +39,16 @@ class _ProductListDialogState extends State<ProductListDialog> {
     if (estimationState is EstimationDataState) {
       debugPrint("Ref Number: ${estimationState.refNumber}");
       refNumber = estimationState.refNumber;
-      debugPrint("Customer: ${estimationState.customer}");
-      customer = estimationState.customer!;
+      // debugPrint("Customer: ${estimationState.customer}");
+      // customer = estimationState.customer!;
+      if(estimationState.customer!= null){
+        debugPrint("Customer: ${estimationState.customer}");
+        customer = estimationState.customer!;
+      }else{
+        debugPrint("Customer: ${estimationState.customerData}");
+        // customerData = estimationState.customerData!;
+        customer = estimationState.customerData!;
+      }
       debugPrint("Salesman: ${estimationState.salesman}");
       salesman = estimationState.salesman!;
     }
