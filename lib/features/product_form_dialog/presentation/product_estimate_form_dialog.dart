@@ -2,22 +2,27 @@ import 'package:estimation_dynamics/features/product_list_dialog/data/model/prod
 import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../widgets/app_widgets.dart';
+import '../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
+import '../../salesman_dialog/data/model/employee_model.dart';
 
 class ProductEstimateFormDialog extends StatefulWidget {
   // final List<ProductListModel> productList;
   final ProductPayload product;
+  final String skuNo;
+
 
   // final int index;
 
   const ProductEstimateFormDialog({
     super.key,
     required this.product,
-    /*required this.index*/
+    required this.skuNo
   });
 
   @override
@@ -31,6 +36,8 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
   TextEditingController pieceController = TextEditingController();
   TextEditingController quantityController = TextEditingController();
   TextEditingController netController = TextEditingController();
+  TextEditingController diamondRateController = TextEditingController();
+  TextEditingController stoneRateController = TextEditingController();
   TextEditingController makingRateController = TextEditingController();
   TextEditingController makingTypeController = TextEditingController();
   TextEditingController makingValueController = TextEditingController();
@@ -49,9 +56,35 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
   List<String> items = ['Qty', 'Pcs', 'Tot', 'Percentage', "Nett"];
   String? _selectedMacType;
 
+  String? refNumber = "";
+  // late final Customer customer;
+  late final dynamic customer;
+  // late final CustomerData customerData;
+  late final SalesmanPayload salesman;
+
   @override
   void initState() {
     super.initState();
+
+    final estimationState = context.read<EstimationBloc>().state;
+    debugPrint("STATE-->$estimationState");
+    if (estimationState is EstimationDataState) {
+      debugPrint("Ref Number: ${estimationState.refNumber}");
+      refNumber = estimationState.refNumber;
+      // debugPrint("Customer: ${estimationState.customer}");
+      // customer = estimationState.customer!;
+      if(estimationState.customer!= null){
+        debugPrint("Customer: ${estimationState.customer}");
+        customer = estimationState.customer!;
+      }else{
+        debugPrint("Customer: ${estimationState.customerData}");
+        // customerData = estimationState.customerData!;
+        customer = estimationState.customerData!;
+      }
+      debugPrint("Salesman: ${estimationState.salesman}");
+      salesman = estimationState.salesman!;
+    }
+
     _selectedMacType = items[0];
 
     // debugPrint("miscChargeArray-->${widget.productList[widget.index].skuDetailCode}");
@@ -62,16 +95,29 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     quantityController.text = widget.product.grossWeight.toString();
     // netWtController.text = widget.product.netweight.toString();
     double netWt = 0.0;
-    for(var ingredient in widget.product.ingredients){
-      if(ingredient.pUREQTY != 0){
+    for (var ingredient in widget.product.ingredients) {
+      if (ingredient.pUREQTY != 0) {
         netWt += ingredient.nETWEIGHT!;
       }
     }
     netWtController.text = netWt.toString();
     netController.text = widget.product.netValue.toString();
+    double diamondRate = 0.0;
+    double stoneRate = 0.0;
+    for (var ingredient in widget.product.ingredients) {
+      if (ingredient.iTEMID!.toLowerCase() == 'diamond') {
+        diamondRate += ingredient.rATE!;
+      }
+      if (ingredient.iTEMID!.toLowerCase() == 'stone') {
+        stoneRate += ingredient.rATE!;
+      }
+    }
+    diamondRateController.text = diamondRate.toStringAsFixed(2);
+    stoneRateController.text = stoneRate.toStringAsFixed(2);
     // netController.text = widget.productList[widget.index].nett!;
     rateController.text = widget.product.rate.toString();
-    makingRateController.text = (widget.product.makingRate + widget.product.wastageAmount).toString();
+    makingRateController.text =
+        (widget.product.makingRate + widget.product.wastageAmount).toString();
     // stoneValueController.text = widget.product.productId.toString();
     // diamondValueController.text = widget.productList[widget.index].diaVal!;
     calculationValue.text = widget.product.cvalue.toString();
@@ -103,6 +149,8 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     pieceController.dispose();
     quantityController.dispose();
     netController.dispose();
+    diamondRateController.dispose();
+    stoneRateController.dispose();
     makingRateController.dispose();
     makingTypeController.dispose();
     makingValueController.dispose();
@@ -185,8 +233,13 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                           ),
                         ),
                       ),
-                      /*GestureDetector(
+                      GestureDetector(
                         onTap: () {
+                          context.read<ProductBloc>().add(UnlockItemEvent(
+                              itemNo: widget.skuNo,
+                              refNo: refNumber,
+                              customer: customer,
+                              salesman: salesman, lineNo: widget.product.linenum, isScanned: true));
                           Navigator.pop(context);
                         },
                         child: Container(
@@ -200,7 +253,7 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                                 AppColors.TITLE_TEXT_COLOR, BlendMode.srcIn),
                           ),
                         ),
-                      ),*/
+                      ),
                     ],
                   ),
                   Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
@@ -355,6 +408,28 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                                   hintText: "Metal Value",
                                   enabled: false,
                                   labelText: 'Metal Value',
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  enabled: false,
+                                  size,
+                                  controller: diamondRateController,
+                                  hintText: "Diamond Rate",
+                                  labelText: 'Diamond Rate',
+                                ),
+                              ),
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  size,
+                                  controller: stoneRateController,
+                                  hintText: "Stone Rate",
+                                  enabled: false,
+                                  labelText: 'Stone Rate',
                                 ),
                               ),
                             ],

@@ -27,6 +27,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     // on<ResetProductStateEvent>(_resetProductState);
     on<SubmitProductEvent>(_submitProductState);
     on<DeleteProductStateEvent>(_deleteProductState);
+    on<UnlockItemEvent>(_unlockItem);
+    on<ApiStatusChangeEvent>(_changeApiStatus);
   }
 
   // List<ProductPayload> selectedProduct = [];
@@ -38,6 +40,12 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   }
 
   List<ProductPayload> updatedList = [];
+
+  void _changeApiStatus(
+      ApiStatusChangeEvent event, Emitter<ProductState> emit) {
+    updatedList.clear();
+    emit(state.copyWith(status: ProductStatus.initial,isScanned: false));
+  }
 
   FutureOr<void> _scanItem(
       ScanItemEvent event, Emitter<ProductState> emit) async {
@@ -72,6 +80,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
       emit(state.copyWith(
         status: ProductStatus.scanLoaded,
+        isScanned: true,
         scannedItem: productModel.dataResult!.payload,
       ));
     } catch (error) {
@@ -82,12 +91,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     }
   }
 
-
   FutureOr<void> _selectProduct(
-      SelectProductEvent event,
-      Emitter<ProductState> emit,
-      ) {
-    if (event.product == null){
+    SelectProductEvent event,
+    Emitter<ProductState> emit,
+  ) {
+    if (event.product == null) {
       debugPrint("PRODUCT_STATUS-->${event.product == null}");
     }
     debugPrint("state.productList_01-->${state.selectedProductList}");
@@ -102,7 +110,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     // Recalculate total
     final totalAmount = updatedList.fold(
       0.0,
-          (sum, product) => sum + product.lineTotal,
+      (sum, product) => sum + product.lineTotal,
     );
 
     emit(state.copyWith(
@@ -113,8 +121,6 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     // debugPrint("UPDATED_PRODUCT_LIST LENGTH --> ${updatedList.length}");
   }
-
-
 
   FutureOr<void> _submitProductState(
       SubmitProductEvent event, Emitter<ProductState> emit) async {
@@ -166,34 +172,38 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     };
 
     try {
-      await _productRepository.scanItem(jsonString, header).then((value) {
-        //final productModel = ProductModel.fromJson(value);
-        //debugPrint("VALUE-->${jsonDecode(value)}");
-        // var val = jsonDecode(value);
-        EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(value);
-        // final EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(jsonDecode(value));
+      await _productRepository.scanItem(jsonString, header).then(
+        (value) {
+          //final productModel = ProductModel.fromJson(value);
+          //debugPrint("VALUE-->${jsonDecode(value)}");
+          // var val = jsonDecode(value);
+          EstimationResponseModel estimationResponseData =
+              EstimationResponseModel.fromJson(value);
+          // final EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(jsonDecode(value));
 
-        emit(state.copyWith(
-          status: ProductStatus.submitDone,
-          estimationResponseModel: estimationResponseData,
-          productList: [],
-          selectedProductList: [],
-          //scannedItem: productModel.dataResult!.payload,
-        ));
-
-      },);
+          emit(state.copyWith(
+            status: ProductStatus.submitDone,
+            estimationResponseModel: estimationResponseData,
+            productList: [],
+            selectedProductList: [],
+            //scannedItem: productModel.dataResult!.payload,
+          ));
+        },
+      );
     } catch (error) {
       debugPrint("ScanItem_ERROR-->$error");
       // Optionally, you can add an error field in ProductState and emit here
     }
   }
 
-  FutureOr<void> _deleteProductState(DeleteProductStateEvent event, Emitter<ProductState> emit) {
-    final updatedList = List<ProductPayload>.from(state.selectedProductList ?? []);
+  FutureOr<void> _deleteProductState(
+      DeleteProductStateEvent event, Emitter<ProductState> emit) {
+    final updatedList =
+        List<ProductPayload>.from(state.selectedProductList ?? []);
     updatedList.removeAt(event.index!);
     final totalAmount = updatedList.fold(
       0.0,
-          (sum, product) => sum + product.lineTotal,
+      (sum, product) => sum + product.lineTotal,
     );
 
     emit(state.copyWith(
@@ -201,5 +211,36 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       selectedProductList: updatedList,
       totalAmount: totalAmount,
     ));
+  }
+
+  FutureOr<void> _unlockItem(
+      UnlockItemEvent event, Emitter<ProductState> emit) {
+    if (event.isScanned! == true) {
+      String jsonString = '''
+  {
+    "RequestVal": "{\\"Operation\\":\\"UNLOCKITEM\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+    "ObjStrVal": "{\\"ItemNum\\":\\"${event.itemNo}\\",\\"LineNum\\":${event.lineNo},\\"SalesPerson\\":\\"${event.salesman!.text}\\",\\"CustomerId\\":\\"${event.customer!.accountNumber}\\",\\"CustomerName\\":\\"${event.customer!.fullName}\\",\\"RefNumber\\":\\"${event.refNo}\\",\\"RefType\\":11}"
+  }
+  ''';
+
+      Map<String, dynamic> header = {
+        'Authorization':
+            'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
+        'oun': ConstantVariable.operatingUnitNumber,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      _productRepository
+          .scanItem(jsonString, header)
+          .then(
+            (value) {},
+          )
+          .onError(
+        (error, stackTrace) {
+          debugPrint("UNLOCK_ITEM_ERROR-->$error");
+        },
+      );
+    }
   }
 }

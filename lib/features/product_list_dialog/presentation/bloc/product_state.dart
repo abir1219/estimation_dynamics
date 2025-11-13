@@ -52,10 +52,12 @@ class ProductState extends Equatable {
   final List<ProductPayload>? selectedProductList;
   final EstimationResponseModel? estimationResponseModel;
   final double totalAmount;
+  final bool? isScanned;
 
   const ProductState({
     this.status = ProductStatus.initial,
     this.scannedItem,
+    this.isScanned = false,
     this.estimationResponseModel,
     this.productList = const[],
     this.selectedProductList = const[],
@@ -64,6 +66,7 @@ class ProductState extends Equatable {
 
   ProductState copyWith({
     ProductStatus? status,
+    bool? isScanned,
     ProductPayload? scannedItem,
     List<ProductPayload>? productList,
     EstimationResponseModel? estimationResponseModel,
@@ -72,6 +75,7 @@ class ProductState extends Equatable {
   }) {
     return ProductState(
       status: status ?? this.status,
+      isScanned: isScanned ?? this.isScanned,
       scannedItem: scannedItem ?? this.scannedItem,
       productList: productList ?? this.productList,
       estimationResponseModel: estimationResponseModel ?? this.estimationResponseModel,
@@ -84,6 +88,7 @@ class ProductState extends Equatable {
   List<Object?> get props => [
     status,
     scannedItem,
+    isScanned,
     estimationResponseModel,
     productList,
     totalAmount,

@@ -25,14 +25,21 @@ class ProductListDialog extends StatefulWidget {
 
 class _ProductListDialogState extends State<ProductListDialog> {
   String? refNumber = "";
+
   // late final Customer customer;
   late final dynamic customer;
+
   // late final CustomerData customerData;
   late final SalesmanPayload salesman;
+
+  bool isScanned = false;
 
   @override
   void initState() {
     super.initState();
+    context
+        .read<ProductBloc>()
+        .add(ApiStatusChangeEvent());
     // context.read<EstimationBloc>().add(const FetchProductListEvent());
     final estimationState = context.read<EstimationBloc>().state;
     debugPrint("STATE-->$estimationState");
@@ -41,10 +48,10 @@ class _ProductListDialogState extends State<ProductListDialog> {
       refNumber = estimationState.refNumber;
       // debugPrint("Customer: ${estimationState.customer}");
       // customer = estimationState.customer!;
-      if(estimationState.customer!= null){
+      if (estimationState.customer != null) {
         debugPrint("Customer: ${estimationState.customer}");
         customer = estimationState.customer!;
-      }else{
+      } else {
         debugPrint("Customer: ${estimationState.customerData}");
         // customerData = estimationState.customerData!;
         customer = estimationState.customerData!;
@@ -104,22 +111,40 @@ class _ProductListDialogState extends State<ProductListDialog> {
                               fontWeight: FontWeight.w600,
                               fontSize: 18),
                         ),
-                        GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Container(
-                              height: 25,
-                              width: 25,
-                              decoration: const BoxDecoration(
-                                  shape: BoxShape.circle, color: Colors.white),
-                              child: SvgPicture.asset(
-                                "assets/images/circle_close.svg",
-                                colorFilter: const ColorFilter.mode(
-                                    AppColors.TITLE_TEXT_COLOR,
-                                    BlendMode.srcIn),
-                              ),
-                            )),
+                        BlocConsumer<ProductBloc, ProductState>(
+                          listener: (context, state) {
+                          },
+                          builder: (context, state) {
+                            return GestureDetector(
+                                onTap: () {
+                                  context
+                                      .read<ProductBloc>()
+                                      .add(ApiStatusChangeEvent());
+                                  context.read<ProductBloc>().add(
+                                      UnlockItemEvent(
+                                          itemNo: state.scannedItem!.transactionStr.sectionHeaderR.split(":").first,
+                                          refNo: refNumber,
+                                          customer: customer,
+                                          salesman: salesman,
+                                          lineNo: state.scannedItem!.linenum,
+                                          isScanned: state.isScanned));
+                                  Navigator.pop(context);
+                                },
+                                child: Container(
+                                  height: 25,
+                                  width: 25,
+                                  decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white),
+                                  child: SvgPicture.asset(
+                                    "assets/images/circle_close.svg",
+                                    colorFilter: const ColorFilter.mode(
+                                        AppColors.TITLE_TEXT_COLOR,
+                                        BlendMode.srcIn),
+                                  ),
+                                ));
+                          },
+                        ),
                       ],
                     ),
                     Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
@@ -129,19 +154,20 @@ class _ProductListDialogState extends State<ProductListDialog> {
                           AppWidgets.buildSearchableField(
                               size, "Product code,Name,Id", _itemTextController,
                               func: () {
-                                if(_itemTextController.text.isNotEmpty){
-                                  context.read<ProductBloc>().add(ScanItemEvent(
+                            if (_itemTextController.text.isNotEmpty) {
+                              context.read<ProductBloc>().add(ScanItemEvent(
                                     itemNo: _itemTextController.text.trim(),
                                     refNo: refNumber,
                                     customer: customer,
                                     salesman: salesman,
                                   ));
-                                }else{
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(content: Text("Scan an item to continue")));
-                                }
-                              },
-                              isEnabled: true),
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content:
+                                          Text("Scan an item to continue")));
+                            }
+                          }, isEnabled: true),
                           Gap(AppDimensions.getResponsiveHeight(context) *
                               0.01),
                           BlocConsumer<ProductBloc, ProductState>(
@@ -151,34 +177,42 @@ class _ProductListDialogState extends State<ProductListDialog> {
 
                               switch (state.status) {
                                 case ProductStatus.submitError:
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  WidgetsBinding.instance
+                                      .addPostFrameCallback((_) {
                                     _showAlertDialog();
                                   });
                                   return SizedBox.shrink();
 
-                                case ProductStatus.initial || ProductStatus.submitDone:
+                                case ProductStatus.initial ||
+                                      ProductStatus.submitDone:
                                   return const SizedBox.shrink();
 
                                 case ProductStatus.scanLoading:
                                   return Expanded(
                                     child: Center(
                                       child: Platform.isAndroid
-                                          ? const CircularProgressIndicator(color: AppColors.BUTTON_COLOR)
+                                          ? const CircularProgressIndicator(
+                                              color: AppColors.BUTTON_COLOR)
                                           : const CupertinoActivityIndicator(),
                                     ),
                                   );
 
                                 case ProductStatus.scanLoaded:
                                   if (state.scannedItem != null) {
-                                    return _buildProductContainer(state.scannedItem!, size, () {
+                                    return _buildProductContainer(
+                                        state.scannedItem!, size, () {
+                                      context
+                                          .read<ProductBloc>()
+                                          .add(ApiStatusChangeEvent());
                                       Navigator.pop(context);
                                       showDialog(
                                         context: context,
                                         barrierDismissible: false,
                                         builder: (context) {
                                           return ProductEstimateFormDialog(
-                                            product: state.scannedItem!,
-                                          );
+                                              product: state.scannedItem!,
+                                              skuNo: _itemTextController.text
+                                                  .trim());
                                         },
                                       );
                                     });
@@ -187,19 +221,29 @@ class _ProductListDialogState extends State<ProductListDialog> {
                                   }
 
                                 case ProductStatus.submittedItems:
-                                  if (state.productList != null && state.productList!.isNotEmpty) {
+                                  if (state.productList != null &&
+                                      state.productList!.isNotEmpty) {
                                     return ListView.builder(
                                       shrinkWrap: true,
                                       itemCount: state.productList!.length,
                                       itemBuilder: (context, index) {
-                                        final product = state.productList![index];
-                                        return _buildProductContainer(product, size, () {
+                                        final product =
+                                            state.productList![index];
+                                        return _buildProductContainer(
+                                            product, size, () {
+                                          context
+                                              .read<ProductBloc>()
+                                              .add(ApiStatusChangeEvent());
                                           Navigator.pop(context);
                                           showDialog(
                                             context: context,
                                             barrierDismissible: false,
                                             builder: (context) {
-                                              return ProductEstimateFormDialog(product: product);
+                                              return ProductEstimateFormDialog(
+                                                product: product,
+                                                skuNo: _itemTextController.text
+                                                    .trim(),
+                                              );
                                             },
                                           );
                                         });
@@ -320,14 +364,20 @@ class _ProductListDialogState extends State<ProductListDialog> {
       context: context,
       animType: AnimType.scale,
       dialogType: DialogType.error,
-      body: Padding(padding: EdgeInsets.symmetric(horizontal: 6),
-      child: Text(
-        'SKU is not found as already scanned!',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontStyle: FontStyle.normal,color: Colors.black,fontSize: 16,fontWeight: FontWeight.w600),
-      ),),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 6),
+        child: Text(
+          'SKU is not found as already scanned!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontStyle: FontStyle.normal,
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.w600),
+        ),
+      ),
       title: 'This is Ignored',
-      desc:   'This is also Ignored',
+      desc: 'This is also Ignored',
       btnOkOnPress: () {},
     )..show();
   }

@@ -20,6 +20,32 @@ final class ScanItemEvent extends ProductEvent {
   List<Object?> get props => [itemNo, refNo, customer, salesman];
 }
 
+final class UnlockItemEvent extends ProductEvent {
+  final bool? isScanned;
+  final String? itemNo;
+  final String? refNo;
+  final double? lineNo;
+  final dynamic customer;
+  final SalesmanPayload? salesman;
+
+  const UnlockItemEvent(
+      {required this.itemNo,
+      required this.refNo,
+      required this.isScanned,
+      required this.lineNo,
+      required this.customer,
+      required this.salesman});
+
+  @override
+  List<Object?> get props => [itemNo, refNo,isScanned, lineNo, customer, salesman];
+}
+
+final class ApiStatusChangeEvent extends ProductEvent{
+  @override
+  List<Object?> get props => [];
+
+}
+
 final class SelectProductEvent extends ProductEvent {
   final ProductPayload? product;
 

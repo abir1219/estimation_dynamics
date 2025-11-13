@@ -27,8 +27,10 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
   bool _isDialogOpen = false;
 
   String? refNumber = "";
+
   // late final Customer customer;
   late final dynamic customer;
+
   // late final CustomerData customerData;
   late final SalesmanPayload salesman;
 
@@ -41,10 +43,10 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
     if (estimationState is EstimationDataState) {
       debugPrint("Ref Number: ${estimationState.refNumber}");
       refNumber = estimationState.refNumber;
-      if(estimationState.customer!= null){
+      if (estimationState.customer != null) {
         debugPrint("Customer: ${estimationState.customer}");
         customer = estimationState.customer!;
-      }else{
+      } else {
         debugPrint("Customer: ${estimationState.customerData}");
         // customerData = estimationState.customerData!;
         customer = estimationState.customerData!;
@@ -654,12 +656,20 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                     ),
                   ),
                 ),*/
-                GestureDetector(
+                /*GestureDetector(
                   onTap: () {
                     debugPrint("---DELETE---");
                     context
                         .read<ProductBloc>()
                         .add(DeleteProductStateEvent(index: index));
+                    context.read<ProductBloc>().add(
+                        UnlockItemEvent(
+                            itemNo: product.transactionStr.sectionHeaderR.split(":")[0],
+                            refNo: refNumber,
+                            customer: customer,
+                            salesman: salesman,
+                            lineNo: 0.0,
+                            isScanned: true));
                   },
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 5),
@@ -673,7 +683,41 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                       size: 25,
                     ),
                   ),
-                ),
+                ),*/
+                GestureDetector(
+                  onTap: () {
+                    debugPrint("---DELETE ITEM AT INDEX: $index ---");
+
+                    final bloc = context.read<ProductBloc>();
+                    final itemNo =
+                        product.transactionStr.sectionHeaderR.split(":").first;
+
+                    bloc
+                      ..add(DeleteProductStateEvent(index: index))
+                      ..add(UnlockItemEvent(
+                        itemNo: itemNo,
+                        refNo: refNumber,
+                        customer: customer,
+                        salesman: salesman,
+                        lineNo: product.linenum,
+                        isScanned: true,
+                      ));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    height: 25,
+                    width: 25,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.transparent,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: AppColors.TITLE_TEXT_COLOR,
+                      size: 25,
+                    ),
+                  ),
+                )
               ],
             ),
           ],
