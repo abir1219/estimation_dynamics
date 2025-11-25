@@ -17,6 +17,13 @@ class EstimationListScreen extends StatefulWidget {
 
 class _EstimationListScreenState extends State<EstimationListScreen> {
   int selectedValue = 1;
+  final searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    searchController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +84,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 50,),
+                SizedBox(height: 80,),
                 _buildSearchOptions(),
                 _buildTitleBar(context),
               ],
@@ -92,36 +99,15 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   }
 
   Widget _buildSearchOptions() {
-    return Column(
-      children: [
-        /*Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildRadioButton(1, "Search by Others"),
-            _buildRadioButton(2, "Search by Date"),
-          ],
-        ),*/
-        /*AppWidgets.buildSearchableField(MediaQuery.sizeOf(context),
-            "Estimation Id, Product name", null,
-            isEnabled: true),*/
-        AppWidgets.searchBoxContainer(
-          isSearchByDate: true,
-          hintText: "Estimation Id or Product name",
-          context: context,
-          func: () => debugPrint("Searching..."),
-        ),
-      ],
+    return AppWidgets.searchBoxContainer(
+      isSearchByDate: false,
+      controller: searchController,
+      hintText: "Estimation Id or Product name",
+      context: context,
+      func: () => debugPrint("Searching..."),
     );
   }
 
-  Widget _buildRadioButton(int value, String label) {
-    return RadioMenuButton(
-      value: value,
-      groupValue: selectedValue,
-      onChanged: (val) => setState(() => selectedValue = val as int),
-      child: Text(label),
-    );
-  }
 
   Widget _buildTitleBar(BuildContext context) {
     return Padding(

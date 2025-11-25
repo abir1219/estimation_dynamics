@@ -312,15 +312,17 @@ class AppWidgets {
   static Widget searchBoxContainer({
     bool isSearchByDate = false,
     required String hintText,
+    required TextEditingController controller,
     required BuildContext context,
     required void Function() func,
   }) {
     return GestureDetector(
       onTap: isSearchByDate ? func : null,
       child: Container(
+        height: 55,
         /*padding: EdgeInsets.only(
-          left: MediaQuery.sizeOf(context).width * 0.008,
-          right: MediaQuery.sizeOf(context).width * 0.008,
+          top: MediaQuery.sizeOf(context).height * 0.008,
+          bottom: MediaQuery.sizeOf(context).height * 0.008,
         ),*/
         decoration: BoxDecoration(
           color: AppColors.LIGHT_YELLOW_COLOR,
@@ -334,7 +336,7 @@ class AppWidgets {
           children: [
             Expanded(
               child: TextField(
-                controller: null,
+                controller: controller,
                 enabled: isSearchByDate ? false : true,
                 style: const TextStyle(
                     color: Colors.black,
