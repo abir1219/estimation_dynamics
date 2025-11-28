@@ -4,11 +4,11 @@ sealed class RecallEstimationEvent extends Equatable {
   const RecallEstimationEvent();
 }
 
-final class RecallEstimation extends RecallEstimationEvent {
-  final String refId;
-  const RecallEstimation({required this.refId});
+final class RecallEstimationDataEvent extends RecallEstimationEvent {
+  final String refNo;
+  const RecallEstimationDataEvent({required this.refNo});
 
   @override
-  List<Object> get props => [refId];
+  List<Object> get props => [refNo];
 }
 

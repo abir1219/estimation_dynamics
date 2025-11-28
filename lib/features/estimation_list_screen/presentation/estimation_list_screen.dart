@@ -1,12 +1,19 @@
+import 'dart:io';
+
+import 'package:estimation_dynamics/features/product_list_dialog/data/model/estimation_response_model_01.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:estimation_dynamics/widgets/custom_bottom_nav.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../main.dart';
 import '../../../widgets/app_widgets.dart';
-import 'package:intl/intl.dart';
+
+import 'bloc/recall_estimation_bloc.dart';
 
 class EstimationListScreen extends StatefulWidget {
   const EstimationListScreen({super.key});
@@ -18,6 +25,26 @@ class EstimationListScreen extends StatefulWidget {
 class _EstimationListScreenState extends State<EstimationListScreen> {
   int selectedValue = 1;
   final searchController = TextEditingController();
+
+  // late final Customer customer;
+  // late final dynamic customer;
+
+  @override
+  void initState() {
+    super.initState();
+    /* final estimationState = context.read<EstimationBloc>().state;
+    debugPrint("STATE-->$estimationState");
+    if (estimationState is EstimationDataState) {
+      if (estimationState.customer != null) {
+        debugPrint("Customer: ${estimationState.customer}");
+        customer = estimationState.customer!;
+      } else {
+        debugPrint("Customer: ${estimationState.customerData}");
+        // customerData = estimationState.customerData!;
+        customer = estimationState.customerData!;
+      }
+    }*/
+  }
 
   @override
   void dispose() {
@@ -84,15 +111,15 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 80,),
+                SizedBox(
+                  height: 80,
+                ),
                 _buildSearchOptions(),
                 _buildTitleBar(context),
               ],
             ),
           ),
-          Expanded(
-            child: _buildEstimationList(),
-          ),
+          _buildEstimationList(),
         ],
       ),
     );
@@ -104,10 +131,12 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
       controller: searchController,
       hintText: "Estimation Id or Product name",
       context: context,
-      func: () => debugPrint("Searching..."),
+      func: () => //debugPrint("search")
+
+          context.read<RecallEstimationBloc>().add(
+              RecallEstimationDataEvent(refNo: searchController.text.trim())),
     );
   }
-
 
   Widget _buildTitleBar(BuildContext context) {
     return Padding(
@@ -143,102 +172,141 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   }
 
   Widget _buildEstimationList() {
-    return ListView.builder(
-      // physics: const BouncingScrollPhysics(),
-      shrinkWrap: true,
-      itemCount: 12,
-      itemBuilder: (context, index) => _buildEstimationContainer(index),
+    return BlocConsumer<RecallEstimationBloc, RecallEstimationState>(
+      listener: (context, state) {},
+      builder: (context, state) {
+        if (state is RecallEstimationLoading) {
+          return Expanded(
+            child: Center(
+              child: Platform.isAndroid
+                  ? const CircularProgressIndicator(
+                  color: AppColors.BUTTON_COLOR)
+                  : const CupertinoActivityIndicator(),
+            ),
+          );
+        } else if (state is RecallEstimationLoaded) {
+
+          return ListView.builder(
+            // physics: const BouncingScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: state.estimationResponseModel.dataResult!.payload!.listItem!.length,
+            itemBuilder: (context, index) => _buildEstimationContainer(
+              index,
+              state.estimationResponseModel.dataResult.payload!.listItem![index],
+              //state.estimationResponseModel.dataResult!.payload!.listItem![index],
+              state.refNo,
+              () => navigatorKey.currentContext!.go(
+                AppPages.PDFVIEW,
+                //extra: state.estimationResponseModel,
+                extra: {
+                  'estimationResponseModel':
+                  state.estimationResponseModel,
+                  'refNumber': state.refNo,
+                },
+              ),
+            ),
+          );
+        } else {
+          return Container();
+        }
+      },
     );
   }
 
-  Widget _buildEstimationContainer(int index) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      height: MediaQuery.sizeOf(context).height * 0.08,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.TITLE_TEXT_COLOR),
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: MediaQuery.sizeOf(context).height * 0.04,
-            color: AppColors.TITLE_TEXT_COLOR,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    /*Checkbox(
-                      checkColor: AppColors.TITLE_TEXT_COLOR,
-                      fillColor: WidgetStateProperty.all(Colors.white),
-                      value: true,
-                      onChanged: (value) {},
-                    ),*/
-                    Container(
-                      margin: EdgeInsets.only(
-                        left: AppDimensions.getResponsiveWidth(context) * 0.02,
-                      ),
-                      child: Text(
-                        "EST000001:${index + 1}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
+  Widget _buildEstimationContainer(
+      int index, ListItem productList, String? refNo, void Function() func) {
+    //
+    return GestureDetector(
+      onTap: func,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        height: MediaQuery.sizeOf(context).height * 0.08,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.TITLE_TEXT_COLOR),
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: MediaQuery.sizeOf(context).height * 0.04,
+              color: AppColors.TITLE_TEXT_COLOR,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      /*Checkbox(
+                        checkColor: AppColors.TITLE_TEXT_COLOR,
+                        fillColor: WidgetStateProperty.all(Colors.white),
+                        value: true,
+                        onChanged: (value) {},
+                      ),*/
+                      Container(
+                        margin: EdgeInsets.only(
+                          left:
+                              AppDimensions.getResponsiveWidth(context) * 0.02,
                         ),
+                        child: Text(
+                          productList.productId.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  /*Padding(
+                    padding: EdgeInsets.symmetric(
+                        horizontal:
+                            AppDimensions.getResponsiveWidth(context) * 0.02),
+                    child: Text(
+                      DateFormat('dd MMM yyyy').format(DateTime.now()),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),*/
+                ],
+              ),
+            ),
+            Expanded(
+              child: Container(
+                color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal:
+                              AppDimensions.getResponsiveWidth(context) * 0.02),
+                      child: Text(
+                        "₹${productList.total}",
+                        style: TextStyle(
+                          color: AppColors.TITLE_TEXT_COLOR,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal:
+                              AppDimensions.getResponsiveWidth(context) * 0.02),
+                      child: const Icon(
+                        Icons.arrow_forward,
+                        color: AppColors.TITLE_TEXT_COLOR,
                       ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal:
-                          AppDimensions.getResponsiveWidth(context) * 0.02),
-                  child: Text(
-                    DateFormat('dd MMM yyyy').format(DateTime.now()),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Container(
-              color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal:
-                            AppDimensions.getResponsiveWidth(context) * 0.02),
-                    child: const Text(
-                      "₹54,749.55",
-                      style: TextStyle(
-                        color: AppColors.TITLE_TEXT_COLOR,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal:
-                            AppDimensions.getResponsiveWidth(context) * 0.02),
-                    child: const Icon(
-                      Icons.arrow_forward,
-                      color: AppColors.TITLE_TEXT_COLOR,
-                    ),
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

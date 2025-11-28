@@ -5,12 +5,12 @@ import 'package:flutter/foundation.dart';
 class EstimationResponseModel {
   final String? odataContext;
   final DataResult? dataResult;
-  final List<dynamic>? extensionProperties;
+  // final List<dynamic>? extensionProperties;
 
   EstimationResponseModel({
     this.odataContext,
     this.dataResult,
-    this.extensionProperties,
+    // this.extensionProperties,
   });
 
   factory EstimationResponseModel.fromJson(Map<String, dynamic> json) {
@@ -27,7 +27,7 @@ class EstimationResponseModel {
               : json['DataResult']
       )
           : null,
-      extensionProperties: json['ExtensionProperties'] ?? [],
+      // extensionProperties: json['ExtensionProperties'] ?? [],
         );
   }
 
