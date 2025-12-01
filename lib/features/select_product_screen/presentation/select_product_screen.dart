@@ -187,6 +187,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                                 extra: {
                                   'estimationResponseModel':
                                       state.estimationResponseModel,
+                                  'reprintEstimationModel': null,
                                   'refNumber': refNumber,
                                 },
                               );

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/local/shared_preferences_helper.dart';
 import '../../../../core/utils/constant_variable.dart';
-import '../../../product_list_dialog/data/model/estimation_response_model_01.dart';
+import '../../../product_list_dialog/data/model/reprint_estimation_response_model.dart';
 import '../../data/recall_repository.dart';
 
 part 'recall_estimation_event.dart';
@@ -45,7 +45,7 @@ class RecallEstimationBloc
     try {
       final value =
           await _recallRepository.recallEstimation(jsonString, header);
-      final estimationResponseModel = EstimationResponseModel_01.fromJson(value);
+      final estimationResponseModel = ReprintEstimationModel.fromJson(value);
       debugPrint("Recall_Estimation_VALUE-->$value");
 
       emit(RecallEstimationLoaded(

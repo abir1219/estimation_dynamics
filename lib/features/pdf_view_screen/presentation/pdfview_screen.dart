@@ -11,14 +11,17 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../main.dart';
 import '../../../router/app_pages.dart';
 import '../../product_list_dialog/data/model/estimation_response_model.dart';
+import '../../product_list_dialog/data/model/reprint_estimation_response_model.dart';
 
 class PdfviewScreen extends StatefulWidget {
-  final EstimationResponseModel estimationResponseModel;
+  final EstimationResponseModel? estimationResponseModel;
+  final ReprintEstimationModel? reprintEstimationModel;
   final String refNumber;
 
   const PdfviewScreen(
       {super.key,
-      required this.estimationResponseModel,
+      this.estimationResponseModel,
+      this.reprintEstimationModel,
       required this.refNumber});
 
   @override
@@ -26,9 +29,50 @@ class PdfviewScreen extends StatefulWidget {
 }
 
 class _PdfviewScreenState extends State<PdfviewScreen> {
+  String details = "";
+  List<int> productNo = [];
+  List<String> productName = [];
+  Map<String, dynamic> productDetails = {"products": []};
+  List<dynamic> products = [];
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
+
+    if (widget.estimationResponseModel != null) {
+      details = widget.estimationResponseModel!
+          .dataResult!
+          .payload!
+          .payload!
+          .salesPerson ?? "";
+
+      productDetails["products"] = widget
+          .estimationResponseModel!
+          .dataResult!
+          .payload!
+          .payload!
+          .listItem!
+          .map((e) => e.toJson())
+          .toList();
+
+    } else if (widget.reprintEstimationModel != null) {
+      details = widget
+          .reprintEstimationModel!
+          .dataResult!
+          .payload
+          .payload[0][0]
+          .salesPerson ?? "";
+
+      productDetails["products"] = widget
+          .reprintEstimationModel!
+          .dataResult!
+          .payload
+          .payload[0]
+          .map((e) => e.toJson())
+          .toList();
+    }
+
+    products = productDetails["products"] as List;
 
     return PopScope(
       canPop: false,
@@ -110,8 +154,16 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           onPressed: () async {
             await _printWithSunmi(); // directly prints
           },
-          label: const Text('Print',style: TextStyle(color: Colors.white,),),
-          icon: const Icon(Icons.print,color: Colors.white,),
+          label: const Text(
+            'Print',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          icon: const Icon(
+            Icons.print,
+            color: Colors.white,
+          ),
           backgroundColor: AppColors.DEEP_YELLOW_COLOR, //Colors.blue,
         ),
       ),
@@ -149,8 +201,9 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
         },
         build: (context) => [
           ...List.generate(
-            widget.estimationResponseModel.dataResult!.payload!.payload!
-                .listItem!.length,
+            // widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem!.length,
+            // products.length,
+            (productDetails["products"] as List).length,
             (index) => pw.Container(
               width: size.width,
               margin: const pw.EdgeInsets.symmetric(vertical: 5),
@@ -456,10 +509,17 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   }*/
 
   pw.Widget _buildProductContainer(Size size, int index) {
+    final products = productDetails["products"] as List;
+    final product = products[index]; // ✅ Single product map
+
+
+    debugPrint("Product=>$product");
+
     return pw.Column(
       children: [
         pw.Text(
-          "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].productId!}",
+          // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].productId!}",
+          "${product["PRODUCTID"] ?? ""}",
           style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
         ),
         pw.Container(
@@ -471,7 +531,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           color: PdfColors.grey,
         ),
         pw.Text(
-          "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].itemId!}",
+          // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].itemId!}",
+          "${product["ITEMID"] ?? ""}",
           style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
         ),
         pw.Container(
@@ -505,7 +566,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     color: PdfColors.grey,
                   ),
                   pw.Text(
-                    "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].piece}",
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
+                    "${product["PIECE"]}",
                     style: const pw.TextStyle(
                       fontSize: 16.5,
                       color: PdfColors.black,
@@ -535,7 +597,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     color: PdfColors.grey,
                   ),
                   pw.Text(
-                    "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].grossWeight}",
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].grossWeight}",
+                    "${product["GROSSWEIGHT"]}",
                     style: const pw.TextStyle(
                       fontSize: 16.5,
                       color: PdfColors.black,
@@ -565,7 +628,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     color: PdfColors.grey,
                   ),
                   pw.Text(
-                    "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].netWeight}",
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].netWeight}",
+                    "${product["NETWEIGHT"]}",
                     style: const pw.TextStyle(
                       fontSize: 16.5,
                       color: PdfColors.black,
@@ -596,7 +660,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   ),
                   pw.Text(
                     // "${widget.estimationResponseModel.data!.estimateDetails![index].estimateProductDetails!.lineAmount}",
-                    "${widget.estimationResponseModel.dataResult!.payload!.payload!.listItem?[index].total!}",
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].total!}",
+                    "${product["TOTAL"]}",
                     style: const pw.TextStyle(
                       fontSize: 16.5,
                       color: PdfColors.black,
@@ -693,9 +758,9 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
 
   pw.Widget _buildFooter(Size size) {
     // final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
-    final details = widget.estimationResponseModel.dataResult!.payload!.payload!
+    /*final details = widget.estimationResponseModel!.dataResult!.payload!.payload!
             .salesPerson ??
-        "";
+        "";*/
 
     // double totalAmount = 0.00;
     /* for(var i in details){

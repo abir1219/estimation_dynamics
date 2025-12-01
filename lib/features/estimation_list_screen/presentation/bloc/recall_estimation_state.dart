@@ -15,7 +15,7 @@ final class RecallEstimationLoading extends RecallEstimationState {
 }
 
 final class RecallEstimationLoaded extends RecallEstimationState {
-  final EstimationResponseModel_01 estimationResponseModel;
+  final ReprintEstimationModel estimationResponseModel;
   final String? refNo;
 
   const RecallEstimationLoaded({required this.estimationResponseModel,required this.refNo});

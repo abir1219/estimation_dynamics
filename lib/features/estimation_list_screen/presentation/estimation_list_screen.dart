@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:estimation_dynamics/features/product_list_dialog/data/model/estimation_response_model_01.dart';
+import 'package:estimation_dynamics/features/product_list_dialog/data/model/reprint_estimation_response_model.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:estimation_dynamics/widgets/custom_bottom_nav.dart';
 import 'package:flutter/cupertino.dart';
@@ -189,17 +189,18 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
           return ListView.builder(
             // physics: const BouncingScrollPhysics(),
             shrinkWrap: true,
-            itemCount: state.estimationResponseModel.dataResult!.payload!.listItem!.length,
+            itemCount: state.estimationResponseModel.dataResult!.payload.payload[0].length,
             itemBuilder: (context, index) => _buildEstimationContainer(
               index,
-              state.estimationResponseModel.dataResult.payload!.listItem![index],
+              state.estimationResponseModel.dataResult!.payload.payload[0][index],
               //state.estimationResponseModel.dataResult!.payload!.listItem![index],
               state.refNo,
               () => navigatorKey.currentContext!.go(
                 AppPages.PDFVIEW,
                 //extra: state.estimationResponseModel,
                 extra: {
-                  'estimationResponseModel':
+                  'estimationResponseModel': null,
+                  'reprintEstimationModel':
                   state.estimationResponseModel,
                   'refNumber': state.refNo,
                 },
@@ -214,7 +215,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   }
 
   Widget _buildEstimationContainer(
-      int index, ListItem productList, String? refNo, void Function() func) {
+      int index, ProductLineModel productList, String? refNo, void Function() func) {
     //
     return GestureDetector(
       onTap: func,
