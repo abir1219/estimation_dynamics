@@ -22,6 +22,7 @@ class RecallEstimationBloc
   RecallEstimationBloc(this._recallRepository)
       : super(RecallEstimationInitial()) {
     on<RecallEstimationDataEvent>(_recallEstimation);
+    on<ChangeStatusEvent>(_changeStatus);
   }
 
   FutureOr<void> _recallEstimation(RecallEstimationDataEvent event,
@@ -56,5 +57,9 @@ class RecallEstimationBloc
       emit(RecallEstimationError(errMsg: error.toString()));
       // Optionally, you can add an error field in ProductState and emit here
     }
+  }
+
+  FutureOr<void> _changeStatus(ChangeStatusEvent event, Emitter<RecallEstimationState> emit) {
+    emit(RecallEstimationInitial());
   }
 }

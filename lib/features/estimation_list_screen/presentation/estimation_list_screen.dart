@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:estimation_dynamics/features/product_list_dialog/data/model/reprint_estimation_response_model.dart';
+import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:estimation_dynamics/widgets/custom_bottom_nav.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +33,8 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   @override
   void initState() {
     super.initState();
+
+    context.read<RecallEstimationBloc>().add(ChangeStatusEvent());
     /* final estimationState = context.read<EstimationBloc>().state;
     debugPrint("STATE-->$estimationState");
     if (estimationState is EstimationDataState) {
@@ -77,6 +80,31 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             ),
           ],
         ),
+      ),
+      floatingActionButton:
+          BlocConsumer<RecallEstimationBloc, RecallEstimationState>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          if (state is RecallEstimationLoaded) {
+            return FloatingActionButton.small(
+              elevation: 0,
+              backgroundColor: AppColors.HEADER_GRADIENT_START_COLOR,
+              onPressed: () => navigatorKey.currentContext!.go(
+                AppPages.PDFVIEW,
+                //extra: state.estimationResponseModel,
+                extra: {
+                  'estimationResponseModel': null,
+                  'reprintEstimationModel': state.estimationResponseModel,
+                  'refNumber': state.refNo,
+                },
+              ),
+              child: Icon(Icons.print,color: AppColors.BUTTON_COLOR,),
+            );
+          }else{
+            return SizedBox();
+          }
+
+        },
       ),
     );
   }
@@ -129,7 +157,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
     return AppWidgets.searchBoxContainer(
       isSearchByDate: false,
       controller: searchController,
-      hintText: "Estimation Id or Product name",
+      hintText: "Estimation Id",
       context: context,
       func: () => //debugPrint("search")
 
@@ -180,22 +208,23 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             child: Center(
               child: Platform.isAndroid
                   ? const CircularProgressIndicator(
-                  color: AppColors.BUTTON_COLOR)
+                      color: AppColors.BUTTON_COLOR)
                   : const CupertinoActivityIndicator(),
             ),
           );
         } else if (state is RecallEstimationLoaded) {
-
           return ListView.builder(
             // physics: const BouncingScrollPhysics(),
             shrinkWrap: true,
-            itemCount: state.estimationResponseModel.dataResult!.payload.payload[0].length,
+            itemCount: state
+                .estimationResponseModel.dataResult!.payload.payload.length,
             itemBuilder: (context, index) => _buildEstimationContainer(
-              index,
-              state.estimationResponseModel.dataResult!.payload.payload[0][index],
-              //state.estimationResponseModel.dataResult!.payload!.listItem![index],
-              state.refNo,
-              () => navigatorKey.currentContext!.go(
+                index,
+                state.estimationResponseModel.dataResult!.payload.payload[index]
+                    [0],
+                //state.estimationResponseModel.dataResult!.payload!.listItem![index],
+                state.refNo
+                /*() => navigatorKey.currentContext!.go(
                 AppPages.PDFVIEW,
                 //extra: state.estimationResponseModel,
                 extra: {
@@ -204,8 +233,8 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                   state.estimationResponseModel,
                   'refNumber': state.refNo,
                 },
-              ),
-            ),
+              ),*/
+                ),
           );
         } else {
           return Container();
@@ -215,10 +244,10 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
   }
 
   Widget _buildEstimationContainer(
-      int index, ProductLineModel productList, String? refNo, void Function() func) {
+      int index, ProductLineModel productList, String? refNo) {
     //
     return GestureDetector(
-      onTap: func,
+      //onTap: func,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 10),
         height: MediaQuery.sizeOf(context).height * 0.08,
@@ -248,11 +277,11 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                               AppDimensions.getResponsiveWidth(context) * 0.02,
                         ),
                         child: Text(
-                          productList.productId.toString(),
+                          "${productList.productId.toString()} (${productList.description})",
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
@@ -288,12 +317,12 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                         "₹${productList.total}",
                         style: TextStyle(
                           color: AppColors.TITLE_TEXT_COLOR,
-                          fontSize: 14,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    Padding(
+                    /*Padding(
                       padding: EdgeInsets.symmetric(
                           horizontal:
                               AppDimensions.getResponsiveWidth(context) * 0.02),
@@ -301,7 +330,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                         Icons.arrow_forward,
                         color: AppColors.TITLE_TEXT_COLOR,
                       ),
-                    ),
+                    ),*/
                   ],
                 ),
               ),

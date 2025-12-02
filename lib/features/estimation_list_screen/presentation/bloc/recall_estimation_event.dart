@@ -12,3 +12,9 @@ final class RecallEstimationDataEvent extends RecallEstimationEvent {
   List<Object> get props => [refNo];
 }
 
+final class ChangeStatusEvent extends RecallEstimationEvent{
+  @override
+  List<Object?> get props => [];
+
+}
+

@@ -56,20 +56,34 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           .toList();
 
     } else if (widget.reprintEstimationModel != null) {
-      details = widget
+
+      var payload = widget
           .reprintEstimationModel!
           .dataResult!
           .payload
-          .payload[0][0]
+          .payload;
+
+      details = payload[0][0]
           .salesPerson ?? "";
 
-      productDetails["products"] = widget
+      for (var prodList in payload) {
+        productDetails["products"].addAll(
+          prodList.map((e) => e.toJson()).toList(),
+        );
+      }
+
+      /*for(var prod in payload){
+        productDetails["products"] = prod
+            .map((e) => e.toJson())
+            .toList();
+      }*/
+      /*productDetails["products"] = widget
           .reprintEstimationModel!
           .dataResult!
           .payload
           .payload[0]
           .map((e) => e.toJson())
-          .toList();
+          .toList();*/
     }
 
     products = productDetails["products"] as List;

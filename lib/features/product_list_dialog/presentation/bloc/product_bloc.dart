@@ -43,7 +43,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   void _changeApiStatus(
       ApiStatusChangeEvent event, Emitter<ProductState> emit) {
-    updatedList.clear();
+    // updatedList.clear();
     emit(state.copyWith(status: ProductStatus.initial,isScanned: false));
   }
 
