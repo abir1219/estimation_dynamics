@@ -34,11 +34,11 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   List<String> productName = [];
   Map<String, dynamic> productDetails = {"products": []};
   List<dynamic> products = [];
-
+  double diamondRate = 0.0;
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
-
+    products = [];
     if (widget.estimationResponseModel != null) {
       details = widget.estimationResponseModel!
           .dataResult!
@@ -64,13 +64,51 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           .payload;
 
       details = payload[0][0]
-          .salesPerson ?? "";
+          .salesPerson;
+
 
       for (var prodList in payload) {
         productDetails["products"].addAll(
           prodList.map((e) => e.toJson()).toList(),
         );
+
+        /*for(var prod in prodList){
+          for(var ing in prod.ingredients){
+            debugPrint("ItemID===>${ing.itemId}");
+            if (ing.itemId.toLowerCase() == 'diamond') {
+              debugPrint("DiaMond===>${ing.itemId}");
+              debugPrint("-->${ing.rate}");
+              diamondRate += ing.rate;
+              // diamondRate += ing.rate;
+              debugPrint("DiaMondRATE===>$diamondRate");
+              // diamondWtList.add(diamondRate);
+            }else{
+              debugPrint("DiaMondRATE_ELSE===>");
+              diamondRate = 0.0;
+              // diamondWtList.add(diamondRate);
+            }
+          }
+        }*/
       }
+      // diamondWtList.add(diamondRate);
+      // debugPrint("DiaMondRATEList===>${diamondWtList.length}");
+      /*double diamondRate = 0.0;
+      for (var ingredient in widget
+          .reprintEstimationModel!
+          .dataResult!
+          .payload
+          .payload) {
+        //[0].ingredients!
+
+        for(var ing in ingredient){
+          if (ing.itemId.toLowerCase() == 'diamond') {
+            debugPrint("-->${ing.rate}");
+            diamondRate += ing.rate;
+          }
+        }
+      }*/
+
+
 
       /*for(var prod in payload){
         productDetails["products"] = prod
@@ -376,7 +414,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           }
           return pw.SizedBox();
         },
-        */ /*build: (context) => [
+        */
+  /*build: (context) => [
           pw.Container(
             width: size.width,
             margin: const pw.EdgeInsets.only(top: 10, bottom: 5),
@@ -528,6 +567,18 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
 
 
     debugPrint("Product=>$product");
+    for(var ing in product["INGREDIENTS"]){
+      // debugPrint("ING_ITEMID-->${ing["ITEMID"]}");
+      // debugPrint("ING_RATE-->${ing["RATE"]}");
+      debugPrint("CHECKING-->${(ing["ITEMID"].toLowerCase() == 'diamond')}");
+      // if (ing.itemId.toLowerCase() == 'diamond') {
+      if (ing["ITEMID"].toLowerCase() == 'diamond') {
+        // debugPrint("ing[\"RATE\"]-->${ing["RATE"]}");
+        diamondRate += ing["RATE"];
+      }
+    }
+
+    // debugPrint("diamondRate=!!!>$diamondRate");
 
     return pw.Column(
       children: [
@@ -566,7 +617,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   pw.Text(
                     "Pcs",
                     style: pw.TextStyle(
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
@@ -583,7 +634,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
                     "${product["PIECE"]}",
                     style: const pw.TextStyle(
-                      fontSize: 16.5,
+                      fontSize: 13.5,
                       color: PdfColors.black,
                     ),
                   ),
@@ -597,7 +648,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   pw.Text(
                     "Gross",
                     style: pw.TextStyle(
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
@@ -614,7 +665,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].grossWeight}",
                     "${product["GROSSWEIGHT"]}",
                     style: const pw.TextStyle(
-                      fontSize: 16.5,
+                      fontSize: 13.5,
                       color: PdfColors.black,
                     ),
                   ),
@@ -628,7 +679,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   pw.Text(
                     "Nett",
                     style: pw.TextStyle(
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
@@ -645,7 +696,70 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].netWeight}",
                     "${product["NETWEIGHT"]}",
                     style: const pw.TextStyle(
-                      fontSize: 16.5,
+                      fontSize: 13.5,
+                      color: PdfColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.Flexible(
+              child: pw.Column(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  pw.Text(
+                    "DiaChrg",
+                    style: pw.TextStyle(
+                      fontSize: 13,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Container(
+                    // width: 22,
+                    height: 0.5,
+                    margin: pw.EdgeInsets.symmetric(
+                      horizontal:
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
+                    ),
+                    color: PdfColors.grey,
+                  ),
+                  pw.Text(
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
+                    diamondRate.toString(),
+                    style: const pw.TextStyle(
+                      fontSize: 13.5,
+                      color: PdfColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            pw.Flexible(
+              child: pw.Column(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  pw.Text(
+                    "MkChrg",
+                    style: pw.TextStyle(
+                      fontSize: 13,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Container(
+                    // width: 22,
+                    height: 0.5,
+                    margin: pw.EdgeInsets.symmetric(
+                      horizontal:
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
+                    ),
+                    color: PdfColors.grey,
+                  ),
+                  pw.Text(
+                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
+                    //diamondRate.toString(),
+                    (product["MAKINGRATE"] + product["WASTAGEAMOUNT"]).toString(),
+                    style: const pw.TextStyle(
+                      fontSize: 13.5,
                       color: PdfColors.black,
                     ),
                   ),
@@ -659,7 +773,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   pw.Text(
                     "Value",
                     style: pw.TextStyle(
-                      fontSize: 16,
+                      fontSize: 13,
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
@@ -677,7 +791,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].total!}",
                     "${product["TOTAL"]}",
                     style: const pw.TextStyle(
-                      fontSize: 16.5,
+                      fontSize: 13.5,
                       color: PdfColors.black,
                     ),
                   ),
