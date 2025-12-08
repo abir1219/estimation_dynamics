@@ -465,7 +465,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   ),
                 ]
             ),),
-          pw.SizedBox(height: 4),*/ /**/ /*
+          pw.SizedBox(height: 4),*/ /*
         ],*/ /*
         build: (context) => [
           ...List.generate(
@@ -570,7 +570,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     for(var ing in product["INGREDIENTS"]){
       // debugPrint("ING_ITEMID-->${ing["ITEMID"]}");
       // debugPrint("ING_RATE-->${ing["RATE"]}");
-      debugPrint("CHECKING-->${(ing["ITEMID"].toLowerCase() == 'diamond')}");
+      // debugPrint("CHECKING-->${(ing["ITEMID"].toLowerCase() == 'diamond')}");
       // if (ing.itemId.toLowerCase() == 'diamond') {
       if (ing["ITEMID"].toLowerCase() == 'diamond') {
         // debugPrint("ing[\"RATE\"]-->${ing["RATE"]}");
