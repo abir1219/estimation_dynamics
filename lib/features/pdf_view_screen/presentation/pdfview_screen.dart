@@ -201,22 +201,25 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          //onPressed: () => _printWithSunmi(),
-          onPressed: () async {
-            await _printWithSunmi(); // directly prints
-          },
-          label: const Text(
-            'Print',
-            style: TextStyle(
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: FloatingActionButton.extended(
+            //onPressed: () => _printWithSunmi(),
+            onPressed: () async {
+              await _printWithSunmi(); // directly prints
+            },
+            label: const Text(
+              'Print',
+              style: TextStyle(
+                color: Colors.white,
+              ),
+            ),
+            icon: const Icon(
+              Icons.print,
               color: Colors.white,
             ),
+            backgroundColor: AppColors.DEEP_YELLOW_COLOR, //Colors.blue,
           ),
-          icon: const Icon(
-            Icons.print,
-            color: Colors.white,
-          ),
-          backgroundColor: AppColors.DEEP_YELLOW_COLOR, //Colors.blue,
         ),
       ),
     );
@@ -574,7 +577,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       // if (ing.itemId.toLowerCase() == 'diamond') {
       if (ing["ITEMID"].toLowerCase() == 'diamond') {
         // debugPrint("ing[\"RATE\"]-->${ing["RATE"]}");
-        diamondRate += ing["RATE"];
+        // diamondRate += ing["RATE"];
+        diamondRate += ing["cVALUE"];
       }
     }
 

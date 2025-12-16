@@ -32,12 +32,14 @@ class ProductEstimateFormDialog extends StatefulWidget {
 
 class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
   TextEditingController productIdController = TextEditingController();
+  TextEditingController itemBarCodeController = TextEditingController();
   TextEditingController netWtController = TextEditingController();
   TextEditingController pieceController = TextEditingController();
   TextEditingController quantityController = TextEditingController();
   TextEditingController netController = TextEditingController();
   TextEditingController diamondRateController = TextEditingController();
   TextEditingController stoneRateController = TextEditingController();
+  TextEditingController wasteageAmntController = TextEditingController();
   TextEditingController makingRateController = TextEditingController();
   TextEditingController makingTypeController = TextEditingController();
   TextEditingController makingValueController = TextEditingController();
@@ -46,6 +48,7 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
   TextEditingController diamondValueController = TextEditingController();
   TextEditingController discPercentageController = TextEditingController();
   TextEditingController discAmountController = TextEditingController();
+  TextEditingController totalAmountController = TextEditingController();
   TextEditingController taxCodeController = TextEditingController();
   TextEditingController taxAmountController = TextEditingController();
   TextEditingController otherValueController = TextEditingController();
@@ -91,8 +94,11 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     // debugPrint("miscChargeArray-->${widget.productList[widget.index].miscCharge![0].amount}");
 
     productIdController.text = widget.product.productId.toString();
+    itemBarCodeController.text = widget.product.itemBarcode.toString();
     pieceController.text = widget.product.piece.toString();
+    wasteageAmntController.text = widget.product.wastageAmount.toString();
     quantityController.text = widget.product.grossWeight.toString();
+    totalAmountController.text = widget.product.total.toString();
     // netWtController.text = widget.product.netweight.toString();
     double netWt = 0.0;
     for (var ingredient in widget.product.ingredients) {
@@ -106,10 +112,12 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     double stoneRate = 0.0;
     for (var ingredient in widget.product.ingredients) {
       if (ingredient.iTEMID!.toLowerCase() == 'diamond') {
-        diamondRate += ingredient.rATE!;
+        // diamondRate += ingredient.rATE!;
+        diamondRate += ingredient.cVALUE!;
       }
       if (ingredient.iTEMID!.toLowerCase() == 'stone') {
-        stoneRate += ingredient.rATE!;
+        // stoneRate += ingredient.rATE!;
+        stoneRate += ingredient.cVALUE!;
       }
     }
     diamondRateController.text = diamondRate.toStringAsFixed(2);
@@ -145,11 +153,13 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
   @override
   void dispose() {
     productIdController.dispose();
+    itemBarCodeController.dispose();
     netWtController.dispose();
     pieceController.dispose();
     quantityController.dispose();
     netController.dispose();
     diamondRateController.dispose();
+    wasteageAmntController.dispose();
     stoneRateController.dispose();
     makingRateController.dispose();
     makingTypeController.dispose();
@@ -162,6 +172,7 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     taxCodeController.dispose();
     taxAmountController.dispose();
     otherValueController.dispose();
+    totalAmountController.dispose();
     calculationValue.dispose();
     miscAmountController.dispose();
     lineAmountController.dispose();
@@ -269,12 +280,27 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                           ):Container(),*/
                           Gap(AppDimensions.getResponsiveHeight(context) *
                               0.01),
-                          AppWidgets().buildTextFormField(
-                            enabled: false,
-                            size,
-                            controller: productIdController,
-                            hintText: "Product Id",
-                            labelText: 'Product Id',
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  enabled: false,
+                                  size,
+                                  controller: productIdController,
+                                  hintText: "Product Id",
+                                  labelText: 'Product Id',
+                                ),
+                              ),
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  enabled: false,
+                                  size,
+                                  controller: itemBarCodeController,
+                                  hintText: "Item Barcode",
+                                  labelText: 'Item Barcode',
+                                ),
+                              ),
+                            ],
                           ),
                           Row(
                             children: [
@@ -352,6 +378,29 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                                   },
                                 ),
                               ),
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  enabled: false,
+                                  size,
+                                  controller: netController,
+                                  hintText: "Net Value",
+                                  labelText: 'Net Value',
+                                  onChange: (value) {
+                                    setState(() {
+                                      if (_selectedMacType == 'Nett') {
+                                        makingValueController.text =
+                                            (double.parse(netController.text
+                                                .toString()) *
+                                                double.parse(
+                                                    makingRateController
+                                                        .text
+                                                        .toString()))
+                                                .toStringAsFixed(2);
+                                      }
+                                    });
+                                  },
+                                ),
+                              ),
                               /*Expanded(
                                 child: AppWidgets().buildTextFormField(
                                   enabled: false,
@@ -380,34 +429,20 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                             children: [
                               Expanded(
                                 child: AppWidgets().buildTextFormField(
-                                  enabled: false,
-                                  size,
-                                  controller: netController,
-                                  hintText: "Net Value",
-                                  labelText: 'Net Value',
-                                  onChange: (value) {
-                                    setState(() {
-                                      if (_selectedMacType == 'Nett') {
-                                        makingValueController.text =
-                                            (double.parse(netController.text
-                                                        .toString()) *
-                                                    double.parse(
-                                                        makingRateController
-                                                            .text
-                                                            .toString()))
-                                                .toStringAsFixed(2);
-                                      }
-                                    });
-                                  },
-                                ),
-                              ),
-                              Expanded(
-                                child: AppWidgets().buildTextFormField(
                                   size,
                                   controller: rateController,
                                   hintText: "Metal Value",
                                   enabled: false,
                                   labelText: 'Metal Value',
+                                ),
+                              ),
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  size,
+                                  controller: calculationValue,
+                                  hintText: "C Value",
+                                  enabled: false,
+                                  labelText: 'C Value',
                                 ),
                               ),
                             ],
@@ -439,10 +474,10 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                               Expanded(
                                 child: AppWidgets().buildTextFormField(
                                   size,
-                                  controller: calculationValue,
-                                  hintText: "C Value",
+                                  controller: wasteageAmntController,
                                   enabled: false,
-                                  labelText: 'C Value',
+                                  hintText: "Wastage Amount",
+                                  labelText: 'Wastage Amount',
                                 ),
                               ),
                               Expanded(
@@ -631,6 +666,19 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                               ),
                             ],
                           ),*/
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppWidgets().buildTextFormField(
+                                  size,
+                                  controller: totalAmountController,
+                                  enabled: false,
+                                  hintText: "Total",
+                                  labelText: 'Total',
+                                ),
+                              ),
+                            ],
+                          ),
                           Row(
                             children: [
                               Expanded(
