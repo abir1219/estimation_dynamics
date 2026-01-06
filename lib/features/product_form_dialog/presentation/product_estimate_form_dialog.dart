@@ -96,9 +96,9 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     productIdController.text = widget.product.productId.toString();
     itemBarCodeController.text = widget.product.itemBarcode.toString();
     pieceController.text = widget.product.piece.toString();
-    wasteageAmntController.text = widget.product.wastageAmount.toString();
+    wasteageAmntController.text = AppWidgets.formatIndianNumber(widget.product.wastageAmount);//widget.product.wastageAmount.toString();
     quantityController.text = widget.product.grossWeight.toString();
-    totalAmountController.text = widget.product.total.toString();
+    totalAmountController.text = AppWidgets.formatIndianNumber(widget.product.total);//widget.product.total.toString();
     // netWtController.text = widget.product.netweight.toString();
     double netWt = 0.0;
     for (var ingredient in widget.product.ingredients) {
@@ -107,7 +107,7 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
       }
     }
     netWtController.text = netWt.toString();
-    netController.text = widget.product.netValue.toString();
+    netController.text = AppWidgets.formatIndianNumber(widget.product.netValue);//widget.product.netValue.toString();
     double diamondRate = 0.0;
     double stoneRate = 0.0;
     for (var ingredient in widget.product.ingredients) {
@@ -120,18 +120,18 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
         stoneRate += ingredient.cVALUE!;
       }
     }
-    diamondRateController.text = diamondRate.toStringAsFixed(2);
-    stoneRateController.text = stoneRate.toStringAsFixed(2);
+    diamondRateController.text = AppWidgets.formatIndianNumber(diamondRate);//diamondRate.toStringAsFixed(2);
+    stoneRateController.text = AppWidgets.formatIndianNumber(stoneRate);//stoneRate.toStringAsFixed(2);
     // netController.text = widget.productList[widget.index].nett!;
-    rateController.text = widget.product.rate.toString();
-    makingRateController.text =
-        (widget.product.makingRate + widget.product.wastageAmount).toString();
+    rateController.text = AppWidgets.formatIndianNumber(widget.product.rate);//widget.product.rate.toString();
+    makingRateController.text = AppWidgets.formatIndianNumber(widget.product.makingRate + widget.product.wastageAmount);
+    //(widget.product.makingRate + widget.product.wastageAmount).toString();
     // stoneValueController.text = widget.product.productId.toString();
     // diamondValueController.text = widget.productList[widget.index].diaVal!;
-    calculationValue.text = widget.product.cvalue.toString();
-    lineAmountController.text = widget.product.lineTotal.toString();
+    calculationValue.text = AppWidgets.formatIndianNumber(widget.product.cvalue);//widget.product.cvalue.toString();
+    lineAmountController.text = AppWidgets.formatIndianNumber(widget.product.lineTotal);//widget.product.lineTotal.toString();
     taxCodeController.text = widget.product.taxCode.toString();
-    taxAmountController.text = widget.product.taxAmount.toString();
+    taxAmountController.text = AppWidgets.formatIndianNumber(widget.product.taxAmount);//widget.product.taxAmount.toString();
     // miscAmountController.text =
     //     widget.productList[widget.index].miscChargeCode != null
     //         ? widget.productList[widget.index].miscChargeCode!.rate!

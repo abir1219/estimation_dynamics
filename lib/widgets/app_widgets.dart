@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../core/constants/app_colors.dart';
@@ -98,6 +99,11 @@ class AppWidgets {
     );
   }
 
+  static String formatIndianNumber(double number) {
+    final indianFormat = NumberFormat("#,##,##0.00", "en_IN"); // Uses Indian Number Format
+    return indianFormat.format(number);
+  }
+
   static Widget showIconContainer(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
@@ -118,7 +124,7 @@ class AppWidgets {
       textAlign: TextAlign.left,
       style: TextStyle(
         fontWeight: FontWeight.w500,
-        fontSize: 20,
+        fontSize: 18,
         color: AppColors.TITLE_TEXT_COLOR,
       ),
     );

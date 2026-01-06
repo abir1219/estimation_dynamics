@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:estimation_dynamics/features/product_list_dialog/data/model/reprint_estimation_response_model.dart';
-import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:estimation_dynamics/widgets/custom_bottom_nav.dart';
 import 'package:flutter/cupertino.dart';
@@ -98,12 +97,14 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                   'refNumber': state.refNo,
                 },
               ),
-              child: Icon(Icons.print,color: AppColors.BUTTON_COLOR,),
+              child: Icon(
+                Icons.print,
+                color: AppColors.BUTTON_COLOR,
+              ),
             );
-          }else{
+          } else {
             return SizedBox();
           }
-
         },
       ),
     );
@@ -139,9 +140,17 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: 80,
+                SizedBox(height: MediaQuery.sizeOf(context).height * 0.06 //50,
+                    ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: AppWidgets.showTitle(
+                    title: 'Reprint Estimation',
+                    size: MediaQuery.sizeOf(context),
+                  ),
                 ),
+                SizedBox(height: MediaQuery.sizeOf(context).height * 0.01 //50,
+                    ),
                 _buildSearchOptions(),
                 _buildTitleBar(context),
               ],
@@ -157,12 +166,14 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
     return AppWidgets.searchBoxContainer(
       isSearchByDate: false,
       controller: searchController,
-      hintText: "Estimation Id",
+      hintText: "Enter Estimation Id",
       context: context,
       func: () => //debugPrint("search")
-
           context.read<RecallEstimationBloc>().add(
-              RecallEstimationDataEvent(refNo: searchController.text.trim())),
+                RecallEstimationDataEvent(
+                  refNo: searchController.text.trim(),
+                ),
+              ),
     );
   }
 
@@ -173,7 +184,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           AppWidgets.showTitle(
-            title: 'Estimation List',
+            title: 'Estimated Product List',
             size: MediaQuery.sizeOf(context),
           ),
           GestureDetector(
@@ -183,7 +194,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
               child: const Icon(
                 Icons.add_circle_outline_rounded,
                 color: AppColors.TITLE_TEXT_COLOR,
-                size: 30,
+                size: 28,
               ),
             ),
           ),
@@ -213,28 +224,30 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
             ),
           );
         } else if (state is RecallEstimationLoaded) {
-          return ListView.builder(
-            // physics: const BouncingScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: state
-                .estimationResponseModel.dataResult!.payload.payload.length,
-            itemBuilder: (context, index) => _buildEstimationContainer(
-                index,
-                state.estimationResponseModel.dataResult!.payload.payload[index]
-                    [0],
-                //state.estimationResponseModel.dataResult!.payload!.listItem![index],
-                state.refNo
-                /*() => navigatorKey.currentContext!.go(
-                AppPages.PDFVIEW,
-                //extra: state.estimationResponseModel,
-                extra: {
-                  'estimationResponseModel': null,
-                  'reprintEstimationModel':
-                  state.estimationResponseModel,
-                  'refNumber': state.refNo,
-                },
-              ),*/
-                ),
+          return Expanded(
+            child: ListView.builder(
+              // physics: const BouncingScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: state
+                  .estimationResponseModel.dataResult!.payload.payload.length,
+              itemBuilder: (context, index) => _buildEstimationContainer(
+                  index,
+                  state.estimationResponseModel.dataResult!.payload
+                      .payload[index][0],
+                  //state.estimationResponseModel.dataResult!.payload!.listItem![index],
+                  state.refNo
+                  /*() => navigatorKey.currentContext!.go(
+                  AppPages.PDFVIEW,
+                  //extra: state.estimationResponseModel,
+                  extra: {
+                    'estimationResponseModel': null,
+                    'reprintEstimationModel':
+                    state.estimationResponseModel,
+                    'refNumber': state.refNo,
+                  },
+                ),*/
+                  ),
+            ),
           );
         } else {
           return Container();
@@ -314,7 +327,7 @@ class _EstimationListScreenState extends State<EstimationListScreen> {
                           horizontal:
                               AppDimensions.getResponsiveWidth(context) * 0.02),
                       child: Text(
-                        "₹${productList.total}",
+                        "₹${AppWidgets.formatIndianNumber(productList.total)}",
                         style: TextStyle(
                           color: AppColors.TITLE_TEXT_COLOR,
                           fontSize: 16,

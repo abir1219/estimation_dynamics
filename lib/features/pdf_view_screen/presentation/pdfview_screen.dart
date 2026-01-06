@@ -1,3 +1,4 @@
+import 'package:estimation_dynamics/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -36,6 +37,9 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   List<dynamic> products = [];
   double diamondRate = 0.0;
   double stoneRate = 0.0;
+  double totalTaxableAmount = 0.0;
+  double totalTaxAmount = 0.0;
+  double totalAmount = 0.0;
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
@@ -256,14 +260,15 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           return pw.SizedBox(); // ✅ no header on other pages
         },
         build: (context) => [
-          ...List.generate(
-            // widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem!.length,
-            // products.length,
-            (productDetails["products"] as List).length,
-            (index) => pw.Container(
-              width: size.width,
-              margin: const pw.EdgeInsets.symmetric(vertical: 5),
-              child: _buildProductContainer(size, index),
+          pw.Column(
+            mainAxisSize: pw.MainAxisSize.min,
+            children: List.generate(
+              (productDetails["products"] as List).length,
+                  (index) => pw.Container(
+                width: size.width,
+                margin: const pw.EdgeInsets.symmetric(vertical: 3),
+                child: _buildProductContainer(size, index),
+              ),
             ),
           ),
         ],
@@ -310,6 +315,15 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     double diamondRate = 0.0;
     double stoneRate = 0.0;
 
+    /*for(var prod in product){
+      debugPrint("TaxableAmount---->${prod['TOTAL']}");
+      totalTaxableAmount += prod['TOTAL'];
+    }*/
+    totalTaxableAmount += product['TOTAL'];
+    totalTaxAmount += product['TAXAMOUNT'];
+    totalAmount += product['LINETOTAL'];
+
+
     for (var ing in product["INGREDIENTS"] ?? []) {
       final itemId = ing["ITEMID"]?.toString().toLowerCase();
 
@@ -328,6 +342,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       children: [
         pw.Text(
           // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].productId!}",
+          // "${product["PRODUCTID"] ?? ""} (${product["ITEMBARCODE"]})",
           "${product["PRODUCTID"] ?? ""}",
           style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
         ),
@@ -661,40 +676,28 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   }
 
   pw.Widget _buildFooter(Size size) {
-    // final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
+     //final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
     /*final details = widget.estimationResponseModel!.dataResult!.payload!.payload!
             .salesPerson ??
         "";*/
 
     // double totalAmount = 0.00;
-    /* for(var i in details){
+    debugPrint("TotalTaxableAmount---->$totalTaxableAmount");
+     /*for(var i in details){
       totalAmount += double.tryParse(i.estimateProductDetails!.lineamount!) ?? 0.00;
     }*/
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        /*if (payments.isNotEmpty) ...[
-          pw.SizedBox(height: 8),
-          pw.Column(
-            children: List.generate(
-              payments.length,
-                  (index) => pw.Container(
-                width: size.width,
-                margin: const pw.EdgeInsets.symmetric(vertical: 5,horizontal: 6),
-                child: _buildPaymentContainer(size, index),
-              ),
-            ),
-          ),
-        ],
-        pw.SizedBox(height: 8),*/
-        /*pw.Row(
+        // pw.SizedBox(height: 8),
+        pw.Row(
           children: [
             pw.Expanded(
               child: pw.Text(
-                "Total Amount",
+                "Total Taxable Amount",
                 style: pw.TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
@@ -702,17 +705,72 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             pw.Expanded(
               child: pw.Text(
                 details.isNotEmpty
-                    ? totalAmount.toString() //details[0].estimateProductDetails?.lineamount ?? ''
+                ?AppWidgets.formatIndianNumber(totalTaxableAmount)
+                   // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
             ),
           ],
-        ),*/
+        ),
+        pw.SizedBox(height: 6),
+        pw.Row(
+          children: [
+            pw.Expanded(
+              child: pw.Text(
+                "Total Tax Amount",
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.Expanded(
+              child: pw.Text(
+                details.isNotEmpty
+                    ?AppWidgets.formatIndianNumber(totalTaxAmount)
+                // ? totalTaxAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                    : "0.00",
+                textAlign: pw.TextAlign.right,
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 6),
+        pw.Row(
+          children: [
+            pw.Expanded(
+              child: pw.Text(
+                "Total Amount",
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.Expanded(
+              child: pw.Text(
+                details.isNotEmpty
+                    ?AppWidgets.formatIndianNumber(totalAmount)
+                // ?  totalAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                    : "0.00",
+                textAlign: pw.TextAlign.right,
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
         pw.SizedBox(height: 12),
         pw.Align(
           alignment: pw.Alignment.center,
