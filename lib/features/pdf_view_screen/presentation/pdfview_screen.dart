@@ -705,7 +705,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             pw.Expanded(
               child: pw.Text(
                 details.isNotEmpty
-                ?AppWidgets.formatIndianNumber(totalTaxableAmount)
+                ? AppWidgets.formatIndianNumber(totalTaxableAmount)
                    // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,

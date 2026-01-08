@@ -23,7 +23,7 @@ class ProductListDialog extends StatefulWidget {
   State<ProductListDialog> createState() => _ProductListDialogState();
 }
 
-class _ProductListDialogState extends State<ProductListDialog> {
+class _ProductListDialogState extends State<ProductListDialog>{
   String? refNumber = "";
 
   // late final Customer customer;
@@ -37,9 +37,7 @@ class _ProductListDialogState extends State<ProductListDialog> {
   @override
   void initState() {
     super.initState();
-    context
-        .read<ProductBloc>()
-        .add(ApiStatusChangeEvent());
+    context.read<ProductBloc>().add(ApiStatusChangeEvent());
     // context.read<EstimationBloc>().add(const FetchProductListEvent());
     final estimationState = context.read<EstimationBloc>().state;
     debugPrint("STATE-->$estimationState");
@@ -67,207 +65,227 @@ class _ProductListDialogState extends State<ProductListDialog> {
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
 
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      insetPadding: EdgeInsets.symmetric(
-        // horizontal: size.width * 0.02, vertical: AppDimensions.getResponsiveHeight(context) * 0.1),
-        horizontal: AppDimensions.getResponsiveWidth(context) * 0.02,
-        vertical: MediaQuery.orientationOf(context) == Orientation.portrait
-            ? AppDimensions.getResponsiveHeight(context) * 0.1
-            : AppDimensions.getResponsiveHeight(context) * 0.01,
-      ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      backgroundColor: Colors.white,
-      child: ScaffoldMessenger(
-        child: Scaffold(
-          body: SafeArea(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.APP_SCREEN_BACKGROUND_COLOR,
-                    AppColors.APP_SCREEN_BACKGROUND_COLOR,
-                    AppColors.APP_SCREEN_BACKGROUND_COLOR
-                        .withValues(alpha: 0.19),
-                  ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        debugPrint("~~~~~BackButtonPressed~~~~~");
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final state = context.read<ProductBloc>().state;
+          debugPrint("--->@${state.scannedItem != null}");
+          if (state.scannedItem != null) {
+            _showVoidAlertDialog(state);
+          } else {
+            Navigator.pop(context);
+          }
+        });
+      },
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        insetPadding: EdgeInsets.symmetric(
+          // horizontal: size.width * 0.02, vertical: AppDimensions.getResponsiveHeight(context) * 0.1),
+          horizontal: AppDimensions.getResponsiveWidth(context) * 0.02,
+          vertical: MediaQuery.orientationOf(context) == Orientation.portrait
+              ? AppDimensions.getResponsiveHeight(context) * 0.1
+              : AppDimensions.getResponsiveHeight(context) * 0.01,
+        ),
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        backgroundColor: Colors.white,
+        child: ScaffoldMessenger(
+          child: Scaffold(
+            body: SafeArea(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.APP_SCREEN_BACKGROUND_COLOR,
+                      AppColors.APP_SCREEN_BACKGROUND_COLOR,
+                      AppColors.APP_SCREEN_BACKGROUND_COLOR
+                          .withValues(alpha: 0.19),
+                    ],
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
-                child: Column(
-                  children: [
-                    Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Product search",
-                          style: TextStyle(
-                              color: AppColors.TITLE_TEXT_COLOR,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18),
-                        ),
-                        BlocConsumer<ProductBloc, ProductState>(
-                          listener: (context, state) {
-                          },
-                          builder: (context, state) {
-                            return GestureDetector(
-                                onTap: () {
-                                  context
-                                      .read<ProductBloc>()
-                                      .add(ApiStatusChangeEvent());
-                                  context.read<ProductBloc>().add(
-                                      UnlockItemEvent(
-                                          itemNo: state.scannedItem!.transactionStr.sectionHeaderR.split(":").first,
-                                          refNo: refNumber,
-                                          customer: customer,
-                                          salesman: salesman,
-                                          lineNo: state.scannedItem!.linenum,
-                                          isScanned: state.isScanned));
-                                  Navigator.pop(context);
-                                },
-                                child: Container(
-                                  height: 25,
-                                  width: 25,
-                                  decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white),
-                                  child: SvgPicture.asset(
-                                    "assets/images/circle_close.svg",
-                                    colorFilter: const ColorFilter.mode(
-                                        AppColors.TITLE_TEXT_COLOR,
-                                        BlendMode.srcIn),
-                                  ),
-                                ));
-                          },
-                        ),
-                      ],
-                    ),
-                    Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
-                    Expanded(
-                      child: Column(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
+                  child: Column(
+                    children: [
+                      Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          AppWidgets.buildSearchableField(
-                              size, "Product code,Name,Id", _itemTextController,
-                              func: () {
-                            if (_itemTextController.text.isNotEmpty) {
-                              context.read<ProductBloc>().add(ScanItemEvent(
-                                    itemNo: _itemTextController.text.trim(),
-                                    refNo: refNumber,
-                                    customer: customer,
-                                    salesman: salesman,
-                                  ));
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content:
-                                          Text("Scan an item to continue")));
-                            }
-                          }, isEnabled: true),
-                          Gap(AppDimensions.getResponsiveHeight(context) *
-                              0.01),
+                          const Text(
+                            "Product search",
+                            style: TextStyle(
+                                color: AppColors.TITLE_TEXT_COLOR,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18),
+                          ),
                           BlocConsumer<ProductBloc, ProductState>(
                             listener: (context, state) {},
                             builder: (context, state) {
-                              final size = MediaQuery.of(context).size;
-
-                              switch (state.status) {
-                                case ProductStatus.submitError:
-                                  WidgetsBinding.instance
-                                      .addPostFrameCallback((_) {
-                                    _showAlertDialog();
-                                  });
-                                  return SizedBox.shrink();
-
-                                case ProductStatus.initial ||
-                                      ProductStatus.submitDone:
-                                  return const SizedBox.shrink();
-
-                                case ProductStatus.scanLoading:
-                                  return Expanded(
-                                    child: Center(
-                                      child: Platform.isAndroid
-                                          ? const CircularProgressIndicator(
-                                              color: AppColors.BUTTON_COLOR)
-                                          : const CupertinoActivityIndicator(),
+                              return GestureDetector(
+                                  onTap: () {
+                                    context
+                                        .read<ProductBloc>()
+                                        .add(ApiStatusChangeEvent());
+                                    context.read<ProductBloc>().add(
+                                        UnlockItemEvent(
+                                            itemNo: state.scannedItem!
+                                                .transactionStr.sectionHeaderR
+                                                .split(":")
+                                                .first,
+                                            refNo: refNumber,
+                                            customer: customer,
+                                            salesman: salesman,
+                                            lineNo: state.scannedItem!.linenum,
+                                            isScanned: state.isScanned));
+                                    Navigator.pop(context);
+                                  },
+                                  child: Container(
+                                    height: 25,
+                                    width: 25,
+                                    decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white),
+                                    child: SvgPicture.asset(
+                                      "assets/images/circle_close.svg",
+                                      colorFilter: const ColorFilter.mode(
+                                          AppColors.TITLE_TEXT_COLOR,
+                                          BlendMode.srcIn),
                                     ),
-                                  );
-
-                                case ProductStatus.scanLoaded:
-                                  if (state.scannedItem != null) {
-                                    return _buildProductContainer(
-                                        state.scannedItem!, size, () {
-                                      context
-                                          .read<ProductBloc>()
-                                          .add(ApiStatusChangeEvent());
-                                      Navigator.pop(context);
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (context) {
-                                          return ProductEstimateFormDialog(
-                                              product: state.scannedItem!,
-                                              skuNo: _itemTextController.text
-                                                  .trim());
-                                        },
-                                      );
-                                    });
-                                  } else {
-                                    return const SizedBox.shrink();
-                                  }
-
-                                case ProductStatus.submittedItems:
-                                  if (state.productList != null &&
-                                      state.productList!.isNotEmpty) {
-                                    return ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: state.productList!.length,
-                                      itemBuilder: (context, index) {
-                                        final product =
-                                            state.productList![index];
-                                        return _buildProductContainer(
-                                            product, size, () {
-                                          context
-                                              .read<ProductBloc>()
-                                              .add(ApiStatusChangeEvent());
-                                          Navigator.pop(context);
-                                          showDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            builder: (context) {
-                                              return ProductEstimateFormDialog(
-                                                product: product,
-                                                skuNo: _itemTextController.text
-                                                    .trim(),
-                                              );
-                                            },
-                                          );
-                                        });
-                                      },
-                                    );
-                                  } else {
-                                    return const Center(
-                                      child: Text(
-                                        "Search Product",
-                                        style: TextStyle(
-                                          color: AppColors.DEEP_YELLOW_COLOR,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                              }
+                                  ));
                             },
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      Gap(AppDimensions.getResponsiveHeight(context) * 0.02),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            AppWidgets.buildSearchableField(
+                                size,
+                                "Product code,Name,Id",
+                                _itemTextController, func: () {
+                              if (_itemTextController.text.isNotEmpty) {
+                                context.read<ProductBloc>().add(ScanItemEvent(
+                                      itemNo: _itemTextController.text.trim(),
+                                      refNo: refNumber,
+                                      customer: customer,
+                                      salesman: salesman,
+                                    ));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content:
+                                            Text("Scan an item to continue")));
+                              }
+                            }, isEnabled: true),
+                            Gap(AppDimensions.getResponsiveHeight(context) *
+                                0.01),
+                            BlocConsumer<ProductBloc, ProductState>(
+                              listener: (context, state) {},
+                              builder: (context, state) {
+                                final size = MediaQuery.of(context).size;
+
+                                switch (state.status) {
+                                  case ProductStatus.submitError:
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                      _showAlertDialog();
+                                    });
+                                    return SizedBox.shrink();
+
+                                  case ProductStatus.initial ||
+                                        ProductStatus.submitDone:
+                                    return const SizedBox.shrink();
+
+                                  case ProductStatus.scanLoading:
+                                    return Expanded(
+                                      child: Center(
+                                        child: Platform.isAndroid
+                                            ? const CircularProgressIndicator(
+                                                color: AppColors.BUTTON_COLOR)
+                                            : const CupertinoActivityIndicator(),
+                                      ),
+                                    );
+
+                                  case ProductStatus.scanLoaded:
+                                    if (state.scannedItem != null) {
+                                      return _buildProductContainer(
+                                          state.scannedItem!, size, () {
+                                        context
+                                            .read<ProductBloc>()
+                                            .add(ApiStatusChangeEvent());
+                                        Navigator.pop(context);
+                                        showDialog(
+                                          context: context,
+                                          barrierDismissible: false,
+                                          builder: (context) {
+                                            return ProductEstimateFormDialog(
+                                                product: state.scannedItem!,
+                                                skuNo: _itemTextController.text
+                                                    .trim());
+                                          },
+                                        );
+                                      });
+                                    } else {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                  case ProductStatus.submittedItems:
+                                    if (state.productList != null &&
+                                        state.productList!.isNotEmpty) {
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: state.productList!.length,
+                                        itemBuilder: (context, index) {
+                                          final product =
+                                              state.productList![index];
+                                          return _buildProductContainer(
+                                              product, size, () {
+                                            context
+                                                .read<ProductBloc>()
+                                                .add(ApiStatusChangeEvent());
+                                            Navigator.pop(context);
+                                            showDialog(
+                                              context: context,
+                                              barrierDismissible: false,
+                                              builder: (context) {
+                                                return ProductEstimateFormDialog(
+                                                  product: product,
+                                                  skuNo: _itemTextController
+                                                      .text
+                                                      .trim(),
+                                                );
+                                              },
+                                            );
+                                          });
+                                        },
+                                      );
+                                    } else {
+                                      return const Center(
+                                        child: Text(
+                                          "Search Product",
+                                          style: TextStyle(
+                                            color: AppColors.DEEP_YELLOW_COLOR,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -357,6 +375,48 @@ class _ProductListDialogState extends State<ProductListDialog> {
         ),
       ),
     );
+  }
+
+  _showVoidAlertDialog(ProductState state) {
+    return AwesomeDialog(
+      context: context,
+      dismissOnBackKeyPress: false,
+      dismissOnTouchOutside: false,
+      animType: AnimType.scale,
+      dialogType: DialogType.warning,
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 6),
+        child: Text(
+          'Do you need to void this estimation?',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontStyle: FontStyle.normal,
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.w600),
+        ),
+      ),
+      title: 'This is Ignored',
+      desc: 'This is also Ignored',
+      //btnOk: Text('Yes'),
+      btnOkText: 'Yes',
+      btnOkOnPress: () {
+        context.read<ProductBloc>().add(ApiStatusChangeEvent());
+        context.read<ProductBloc>().add(UnlockItemEvent(
+            itemNo: state.scannedItem!.transactionStr.sectionHeaderR
+                .split(":")
+                .first,
+            refNo: refNumber,
+            customer: customer,
+            salesman: salesman,
+            lineNo: state.scannedItem!.linenum,
+            isScanned: state.isScanned));
+        Navigator.pop(context);
+      },
+      // btnCancel: Text('No'),
+      btnCancelText: 'No',
+      btnCancelOnPress: () {}, //Navigator.pop(context),
+    )..show();
   }
 
   _showAlertDialog() {

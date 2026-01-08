@@ -415,7 +415,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
                 onTap: () {
                   showDialog(
                     context: context,
-                    barrierDismissible: true,
+                    barrierDismissible: false,
                     builder: (context) {
                       // context
                       //     .read<ProductBloc>()
