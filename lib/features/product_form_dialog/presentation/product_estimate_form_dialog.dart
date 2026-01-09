@@ -108,7 +108,8 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
       }
     }
     netWtController.text = netWt.toString();
-    netController.text = AppWidgets.formatIndianNumber(
+    netController.text =
+        AppWidgets.formatIndianNumber(
         widget.product.netValue); //widget.product.netValue.toString();
     double diamondRate = 0.0;
     double stoneRate = 0.0;
@@ -127,12 +128,13 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
     stoneRateController.text = AppWidgets.formatIndianNumber(
         stoneRate); //stoneRate.toStringAsFixed(2);
     // netController.text = widget.productList[widget.index].nett!;
-    rateController.text = AppWidgets.formatIndianNumber(widget.product.rate -
-        (diamondRate + stoneRate)); //widget.product.rate.toString();
-    makingRateController.text = AppWidgets.formatIndianNumber(
+    rateController.text = AppWidgets.formatIndianNumber(widget.product.rate - (diamondRate + stoneRate)); //widget.product.rate.toString();
+    makingRateController.text = AppWidgets.formatIndianNumber(widget.product.makingAmount);
+
+        /*AppWidgets.formatIndianNumber(
         widget.product.makingRate == 0
-            ? /*widget.product.makingRate +*/ widget.product.wastageAmount
-            : widget.product.makingRate);
+            ? *//*widget.product.makingRate +*//* widget.product.wastageAmount
+            : widget.product.makingRate);*/
     //(widget.product.makingRate + widget.product.wastageAmount).toString();
     // stoneValueController.text = widget.product.productId.toString();
     // diamondValueController.text = widget.productList[widget.index].diaVal!;
@@ -499,8 +501,8 @@ class _ProductEstimateFormDialogState extends State<ProductEstimateFormDialog> {
                                     size,
                                     controller: makingRateController,
                                     enabled: false,
-                                    hintText: "Mak Rate",
-                                    labelText: 'Mak Rate',
+                                    hintText: "Mak Value",
+                                    labelText: 'Mak Value',
                                   ),
                                 ),
                               ],
