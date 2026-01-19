@@ -208,22 +208,46 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
         ),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(right: 8.0),
-          child: FloatingActionButton.extended(
-            //onPressed: () => _printWithSunmi(),
-            onPressed: () async {
-              await _printWithSunmi(); // directly prints
-            },
-            label: const Text(
-              'Print',
-              style: TextStyle(
-                color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FloatingActionButton.small(
+                //onPressed: () => _printWithSunmi(),
+                onPressed: () async {
+                  await _printWithSunmi(); // directly prints
+                },
+                backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+                /*label: const Text(
+                  'Print',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),*/
+                child: const Icon(
+                  Icons.print,
+                  color: Colors.white,
+                ), //Colors.blue,
               ),
-            ),
-            icon: const Icon(
-              Icons.print,
-              color: Colors.white,
-            ),
-            backgroundColor: AppColors.DEEP_YELLOW_COLOR, //Colors.blue,
+              SizedBox(width: size.width * 0.01,),
+              FloatingActionButton.small(
+                //onPressed: () => _printWithSunmi(),
+                onPressed: () async {
+                  //await _printWithSunmi(); // directly prints
+                },
+                backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+                //label: Text(''),
+                /*const Text(
+                  'Edit',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),*/
+                child: const Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                ), //Colors.blue,
+              ),
+            ],
           ),
         ),
       ),
@@ -267,7 +291,14 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   (index) => pw.Container(
                 width: size.width,
                 margin: const pw.EdgeInsets.symmetric(vertical: 3),
-                child: _buildProductContainer(size, index),
+                child: pw.Column(
+                  children: [
+                    _buildProductContainer(size, index),
+                    if(index == (productDetails["products"] as List).length - 1)
+                      pw.SizedBox(height: size.height * 0.3),
+                      _buildFooter(size)
+                  ]
+                )
               ),
             ),
           ),
@@ -277,14 +308,14 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     );
 
     // Final Page: Footer only (payments + totals + employee)
-    pdf.addPage(
+    /*pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
         build: (context) {
           return _buildFooter(size);
         },
       ),
-    );
+    );*/
 
     return pdf.save();
   }
