@@ -49,6 +49,7 @@ class _MobileAddCustomerState extends State<MobileAddCustomer> {
     return ScaffoldMessenger(
       child: Scaffold(
         backgroundColor: AppColors.APP_SCREEN_BACKGROUND_COLOR,
+        // backgroundColor: AppColors.APP_SCREEN_BACKGROUND_COLOR,
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: size.width * 0.04),
