@@ -1,5 +1,6 @@
 import 'package:estimation_dynamics/features/product_list_dialog/data/model/product_model.dart';
 import 'package:estimation_dynamics/features/product_list_dialog/presentation/product_list_dialog.dart';
+import 'package:estimation_dynamics/features/search_customer_dialog/data/customer_model.dart';
 import 'package:estimation_dynamics/widgets/custom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,7 +35,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
   // late final CustomerData customerData;
   late final SalesmanPayload salesman;
 
-  @override
+  /*@override
   void initState() {
     super.initState();
     // context.read<EstimationBloc>().add(const FetchProductListEvent());
@@ -53,6 +54,63 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
       }
       debugPrint("Salesman: ${estimationState.salesman}");
       salesman = estimationState.salesman!;
+    }
+  }*/
+
+  @override
+  void initState() {
+    super.initState();
+
+    final estimationState = context.read<EstimationBloc>().state;
+    final productState = context.read<ProductBloc>().state;
+
+    debugPrint("STATE-->$estimationState");
+
+    if (estimationState is EstimationDataState) {
+      // 1️⃣ Ref number (snapshot only)
+      refNumber = estimationState.refNumber;
+      debugPrint("refNumber-->$refNumber");
+
+      // 🔥 Trigger generation if missing (ASYNC – result handled elsewhere)
+      /*if (refNumber == null && !estimationState.isLoading) {
+        context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
+      }*/
+
+      // 2️⃣ Customer resolution (priority-based)
+      if (estimationState.customer != null) {
+        customer = estimationState.customer!;
+      } else if (estimationState.customerData != null) {
+        customer = estimationState.customerData!;
+      } else if (productState.estimationResponseModel
+          ?.dataResult
+          ?.payload
+          ?.payload !=
+          null) {
+        final payload =
+        productState.estimationResponseModel!.dataResult!.payload!.payload!;
+
+        customer = Customer(
+          accountNumber: payload.customerId ?? '',
+          fullName: payload.custName ?? '',
+        );
+      }
+
+      // 3️⃣ Salesman resolution (safe fallback)
+      if (estimationState.salesman != null) {
+        salesman = estimationState.salesman!;
+      } else if (productState.estimationResponseModel
+          ?.dataResult
+          ?.payload
+          ?.payload !=
+          null) {
+        final payload =
+        productState.estimationResponseModel!.dataResult!.payload!.payload!;
+
+        salesman = SalesmanPayload(
+          text: payload.salesPerson ?? '',
+          value: '',
+        );
+      }
     }
   }
 
@@ -531,6 +589,14 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
     return BlocConsumer<ProductBloc, ProductState>(
       listener: (context, state) {},
       builder: (context, state) {
+        /*for(var item in state.selectedProductList!){
+          context.read<ProductBloc>().add(ScanItemEvent(
+            itemNo: item.productId.toString().trim(),
+            refNo: refNumber,
+            customer: customer,
+            salesman: salesman,
+          ));
+        }*/
         final size = MediaQuery.sizeOf(context);
 
         // ✅ Always check productList first

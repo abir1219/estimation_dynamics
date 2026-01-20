@@ -1,6 +1,8 @@
+import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
@@ -11,8 +13,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../main.dart';
 import '../../../router/app_pages.dart';
+import '../../add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 import '../../product_list_dialog/data/model/estimation_response_model.dart';
 import '../../product_list_dialog/data/model/reprint_estimation_response_model.dart';
+import '../../salesman_dialog/data/model/employee_model.dart';
+import '../../search_customer_dialog/data/customer_model.dart';
 
 class PdfviewScreen extends StatefulWidget {
   final EstimationResponseModel? estimationResponseModel;
@@ -40,37 +45,116 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   double totalTaxableAmount = 0.0;
   double totalTaxAmount = 0.0;
   double totalAmount = 0.0;
+
+  String? refNumber;
+
+  dynamic customer;
+  SalesmanPayload? salesman;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void fetchData() {
+    final estimationState = context.read<EstimationBloc>().state;
+    final productState = context.read<ProductBloc>().state;
+
+    if (estimationState is! EstimationDataState) return;
+
+    refNumber = estimationState.refNumber;
+
+    final payload =
+        productState.estimationResponseModel?.dataResult?.payload?.payload;
+
+    if (estimationState.customer != null) {
+      customer = estimationState.customer!;
+    } else if (estimationState.customerData != null) {
+      customer = estimationState.customerData!;
+    } else if (payload != null) {
+      customer = Customer(
+        accountNumber: payload.customerId ?? '',
+        fullName: payload.custName ?? '',
+      );
+    }
+
+    if (estimationState.salesman != null) {
+      salesman = estimationState.salesman!;
+    } else if (payload != null) {
+      salesman = SalesmanPayload(
+        text: payload.salesPerson ?? '',
+        value: '',
+      );
+    }
+  }
+
+  /*void fetchData() {
+    final estimationState = context.read<EstimationBloc>().state;
+    final productState = context.read<ProductBloc>().state;
+
+    debugPrint("STATE-->$estimationState");
+
+    if (estimationState is EstimationDataState) {
+      // 1️⃣ Ref number (snapshot only)
+      refNumber = estimationState.refNumber;
+      debugPrint("refNumber-->$refNumber");
+
+      // 🔥 Trigger generation if missing (ASYNC – result handled elsewhere)
+      */ /*if (refNumber == null && !estimationState.isLoading) {
+        context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
+      }*/ /*
+
+      // 2️⃣ Customer resolution (priority-based)
+      if (estimationState.customer != null) {
+        customer = estimationState.customer!;
+      } else if (estimationState.customerData != null) {
+        customer = estimationState.customerData!;
+      } else if (productState
+              .estimationResponseModel?.dataResult?.payload?.payload !=
+          null) {
+        final payload =
+            productState.estimationResponseModel!.dataResult!.payload!.payload!;
+
+        customer = Customer(
+          accountNumber: payload.customerId ?? '',
+          fullName: payload.custName ?? '',
+        );
+      }
+
+      // 3️⃣ Salesman resolution (safe fallback)
+      if (estimationState.salesman != null) {
+        salesman = estimationState.salesman!;
+      } else if (productState
+              .estimationResponseModel?.dataResult?.payload?.payload !=
+          null) {
+        final payload =
+            productState.estimationResponseModel!.dataResult!.payload!.payload!;
+
+        salesman = SalesmanPayload(
+          text: payload.salesPerson ?? '',
+          value: '',
+        );
+      }
+    }
+  }*/
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
     products = [];
     if (widget.estimationResponseModel != null) {
-      details = widget.estimationResponseModel!
-          .dataResult!
-          .payload!
-          .payload!
-          .salesPerson ?? "";
+      details = widget.estimationResponseModel!.dataResult!.payload!.payload!
+              .salesPerson ??
+          "";
 
       productDetails["products"] = widget
-          .estimationResponseModel!
-          .dataResult!
-          .payload!
-          .payload!
-          .listItem!
+          .estimationResponseModel!.dataResult!.payload!.payload!.listItem!
           .map((e) => e.toJson())
           .toList();
-
     } else if (widget.reprintEstimationModel != null) {
+      var payload = widget.reprintEstimationModel!.dataResult!.payload.payload;
 
-      var payload = widget
-          .reprintEstimationModel!
-          .dataResult!
-          .payload
-          .payload;
-
-      details = payload[0][0]
-          .salesPerson;
-
+      details = payload[0][0].salesPerson;
 
       for (var prodList in payload) {
         productDetails["products"].addAll(
@@ -112,8 +196,6 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           }
         }
       }*/
-
-
 
       /*for(var prod in payload){
         productDetails["products"] = prod
@@ -194,14 +276,24 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   ); // Swap dimensions for landscape
 
             return SafeArea(
-              child: PdfPreview(
-                allowSharing: false,
-                allowPrinting: true,
-                canChangeOrientation: false,
-                canChangePageFormat: false,
-                canDebug: false,
-                useActions: false,
-                build: (format) => _createPdf(format, adjustedSize),
+              child: BlocListener<EstimationBloc, EstimationState>(
+                listener: (context, state) {
+                  if (state is EstimationDataState && state.refNumber != null) {
+                    refNumber = state.refNumber!;
+                    debugPrint("NEW REF NUMBER --> $refNumber");
+
+                    _continueEditFlow(); // ✅ SAFE ENTRY POINT
+                  }
+                },
+                child: PdfPreview(
+                  allowSharing: false,
+                  allowPrinting: true,
+                  canChangeOrientation: false,
+                  canChangePageFormat: false,
+                  canDebug: false,
+                  useActions: false,
+                  build: (format) => _createPdf(format, adjustedSize),
+                ),
               ),
             );
           },
@@ -212,6 +304,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               FloatingActionButton.small(
+                heroTag: 'f2',
                 //onPressed: () => _printWithSunmi(),
                 onPressed: () async {
                   await _printWithSunmi(); // directly prints
@@ -228,31 +321,230 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   color: Colors.white,
                 ), //Colors.blue,
               ),
-              SizedBox(width: size.width * 0.01,),
-              FloatingActionButton.small(
-                //onPressed: () => _printWithSunmi(),
-                onPressed: () async {
-                  //await _printWithSunmi(); // directly prints
-                },
-                backgroundColor: AppColors.DEEP_YELLOW_COLOR,
-                //label: Text(''),
-                /*const Text(
-                  'Edit',
-                  style: TextStyle(
+              SizedBox(
+                width: size.width * 0.01,
+              ),
+              if (widget.estimationResponseModel != null)
+                FloatingActionButton.small(
+                  heroTag: 'f1',
+                  backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+                  /*onPressed: () {
+                    fetchData();
+
+                    final estimationPayload = widget
+                        .estimationResponseModel?.dataResult?.payload?.payload;
+                    if (estimationPayload == null) return;
+
+                    final productBloc = context.read<ProductBloc>();
+                    final estimationBloc = context.read<EstimationBloc>();
+
+                    final productState = productBloc.state;
+                    final selectedProducts = productState.selectedProductList;
+
+                    if (selectedProducts == null || selectedProducts.isEmpty) {
+                      return;
+                    }
+
+                    // 🔹 1. Generate estimation number (async, listener will handle update)
+                    estimationBloc.add(GenerateEstimationNoEvent());
+
+                    // 🔹 2. Scan items (safe iteration)
+                    for (final item in selectedProducts) {
+                      final productId = item.productId;
+
+                      productBloc.add(
+                        ScanItemEvent(
+                          itemNo: productId.toString().trim(),
+                          refNo: refNumber,
+                          customer: customer,
+                          salesman: salesman,
+                        ),
+                      );
+                    }
+
+                    // 🔹 3. Edit estimate product
+                    productBloc.add(
+                      EditEstimateProductEvent(
+                        customerId: estimationPayload.customerId!,
+                        customerName: estimationPayload.custName ?? '',
+                        listItem: estimationPayload.listItem ?? const [],
+                        salesman: estimationPayload.salesPerson ?? '',
+                      ),
+                    );
+
+                    // 🔹 4. Navigate
+                    context.go(AppPages.SELECT_PRODUCT);
+                  },*/
+
+                  onPressed: () {
+                    fetchData();
+
+                    final estimationBloc = context.read<EstimationBloc>();
+                    estimationBloc.add(GenerateEstimationNoEvent());
+                    /*if (refNumber == null) {
+                      debugPrint("RefNumber NULL → generating");
+                      estimationBloc.add(GenerateEstimationNoEvent());
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Preparing estimation, tap again")),
+                      );
+                      return;
+                    }*/
+
+                   /* Future.delayed(
+                      Duration(milliseconds: 300),
+                      () => _continueEditFlow(),
+                    );*/
+                  },
+                  child: const Icon(
+                    Icons.edit,
                     color: Colors.white,
                   ),
-                ),*/
-                child: const Icon(
-                  Icons.edit,
-                  color: Colors.white,
-                ), //Colors.blue,
-              ),
+                ),
+              /*FloatingActionButton.small(
+                  heroTag: 'f1',
+                  backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+                  onPressed: () {
+                    fetchData();
+                    final payload = widget
+                        .estimationResponseModel?.dataResult?.payload?.payload;
+
+                    if (payload == null) return;
+
+                    var productState = context.read<ProductBloc>().state;
+
+                    context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
+
+                    for(var item in productState.selectedProductList!){
+                      context.read<ProductBloc>().add(ScanItemEvent(
+                        itemNo: item.productId.toString().trim(),
+                        refNo: refNumber,
+                        customer: customer,
+                        salesman: salesman,
+                      ));
+                    }
+
+                    context.read<ProductBloc>().add(
+                          EditEstimateProductEvent(
+                            customerId: payload.customerId!,
+                            customerName: payload.custName ?? '',
+                            listItem: payload.listItem ?? const [],
+                            salesman: payload.salesPerson ?? '',
+                          ),
+                        );
+
+                    // ✅ Navigate immediately (Bloc is synchronous here)
+                    context.go(AppPages.SELECT_PRODUCT);
+                  },
+                  child: const Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                  ),
+                )*/
             ],
           ),
         ),
       ),
     );
   }
+
+  void _continueEditFlow() {
+    final estimationPayload =
+        widget.estimationResponseModel?.dataResult?.payload?.payload;
+    if (estimationPayload == null) return;
+
+    final productBloc = context.read<ProductBloc>();
+    final productState = productBloc.state;
+    final selectedProducts = productState.selectedProductList;
+
+    if (selectedProducts == null || selectedProducts.isEmpty) {
+      debugPrint("No products selected");
+      return;
+    }
+
+    if (customer == null || salesman == null || refNumber == null) {
+      debugPrint("Missing customer / salesman / refNumber");
+      return;
+    }
+
+    // 1️⃣ Delete previous estimation
+    productBloc.add(
+      DeleteEstimationEvent(referenceNo: widget.refNumber),
+    );
+
+    // 2️⃣ Restore product list into bloc
+    productBloc.add(
+      EditEstimateProductEvent(
+        customerId: estimationPayload.customerId!,
+        customerName: estimationPayload.custName ?? '',
+        listItem: estimationPayload.listItem ?? const [],
+        salesman: estimationPayload.salesPerson ?? '',
+      ),
+    );
+
+    // 3️⃣ Scan each product with NEW ref number
+    for (final item in selectedProducts) {
+      productBloc.add(
+        ScanItemEvent(
+          itemNo: item.itemBarcode.toString().trim(),
+          refNo: refNumber!, // ✅ NEW ref number
+          customer: customer,
+          salesman: salesman,
+        ),
+      );
+    }
+
+    // 4️⃣ Navigate
+    context.go(AppPages.SELECT_PRODUCT);
+  }
+
+  /*void _continueEditFlow() {
+    final estimationPayload =
+        widget.estimationResponseModel?.dataResult?.payload?.payload;
+    if (estimationPayload == null) return;
+
+    final productBloc = context.read<ProductBloc>();
+
+    productBloc.add(DeleteEstimationEvent(referenceNo: widget.refNumber));
+
+    productBloc.add(
+      EditEstimateProductEvent(
+        customerId: estimationPayload.customerId!,
+        customerName: estimationPayload.custName ?? '',
+        listItem: estimationPayload.listItem ?? const [],
+        salesman: estimationPayload.salesPerson ?? '',
+      ),
+    );
+
+    final productState = productBloc.state;
+
+    final selectedProducts = productState.selectedProductList;
+
+    if (selectedProducts == null || selectedProducts.isEmpty) {
+      debugPrint("No products selected");
+      return;
+    }
+
+    if (customer == null || salesman == null) {
+      debugPrint("Customer or salesman missing");
+      return;
+    }
+
+    Future.delayed(Duration(milliseconds: 800));
+    for (final item in selectedProducts) {
+      productBloc.add(
+        ScanItemEvent(
+          itemNo: item.itemBarcode.toString().trim(),
+          refNo: refNumber!,
+          customer: customer,
+          salesman: salesman,
+        ),
+      );
+    }
+
+    context.go(AppPages.SELECT_PRODUCT);
+  }*/
 
   Future<void> _printWithSunmi() async {
     final pdfData = await _createPdf(
@@ -267,6 +559,77 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   }
 
   Future<Uint8List> _createPdf(PdfPageFormat format, Size size) async {
+    final pdf = pw.Document(
+      version: PdfVersion.pdf_1_4,
+      compress: true,
+    );
+
+    // Load logo once
+    final logoBytes = await rootBundle.load('assets/images/logo.png');
+    final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
+
+    final products = productDetails["products"] as List;
+    final lastIndex = products.length - 1;
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat(
+          size.width,
+          size.height,
+          marginAll: 5,
+        ),
+
+        // Header only on first page
+        header: (context) {
+          if (context.pageNumber == 1) {
+            return _buildHeader(size, logoImage);
+          }
+          return pw.SizedBox();
+        },
+        build: (context) => [
+          pw.Column(
+            children: List.generate(
+              products.length,
+              (index) {
+                return pw.Container(
+                  width: size.width,
+                  margin: const pw.EdgeInsets.symmetric(vertical: 3),
+                  child: pw.Column(
+                    children: [
+                      _buildProductContainer(size, index),
+
+                      // ✅ Footer ONLY after last product
+                      if (index == lastIndex) ...[
+                        // pw.SizedBox(height: size.height * 0.05),
+                        _buildFooter(size),
+                      ],
+                    ],
+                  ),
+                );
+              },
+            ),
+          )
+        ],
+      ),
+    );
+    return pdf.save();
+  }
+
+  void _calculateTotalsOnce() {
+    totalTaxableAmount = 0;
+    totalTaxAmount = 0;
+    totalAmount = 0;
+
+    final products = productDetails["products"] as List;
+
+    for (final product in products) {
+      totalTaxableAmount += (product['TOTAL'] ?? 0).toDouble();
+      totalTaxAmount += (product['TAXAMOUNT'] ?? 0).toDouble();
+      totalAmount += (product['LINETOTAL'] ?? 0).toDouble();
+    }
+  }
+
+  /*Future<Uint8List> _createPdf(PdfPageFormat format, Size size) async {
     final pdf = pw.Document(version: PdfVersion.pdf_1_4, compress: true);
 
     // Load logo once
@@ -308,21 +671,22 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     );
 
     // Final Page: Footer only (payments + totals + employee)
-    /*pdf.addPage(
+    */ /*pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
         build: (context) {
           return _buildFooter(size);
         },
       ),
-    );*/
+    );*/ /*
 
     return pdf.save();
-  }
+  }*/
   pw.Widget _buildProductContainer(Size size, int index) {
     final products = productDetails["products"] as List;
     final product = products[index]; // ✅ Single product map
 
+    // _calculateTotalsOnce();
 
     /*debugPrint("Product=>$product");
     for(var ing in product["INGREDIENTS"]){
@@ -353,7 +717,6 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     totalTaxableAmount += product['TOTAL'];
     totalTaxAmount += product['TAXAMOUNT'];
     totalAmount += product['LINETOTAL'];
-
 
     for (var ing in product["INGREDIENTS"] ?? []) {
       final itemId = ing["ITEMID"]?.toString().toLowerCase();
@@ -401,36 +764,36 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
           children: [
             //pw.Flexible(
-              //child:
-              pw.Column(
-                mainAxisAlignment: pw.MainAxisAlignment.center,
-                children: [
-                  pw.Text(
-                    "Pcs",
-                    style: pw.TextStyle(
-                      fontSize: 11.0,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
+            //child:
+            pw.Column(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [
+                pw.Text(
+                  "Pcs",
+                  style: pw.TextStyle(
+                    fontSize: 11.0,
+                    fontWeight: pw.FontWeight.bold,
                   ),
-                  pw.Container(
-                    // width: 22,
-                    height: 0.5,
-                    margin: pw.EdgeInsets.symmetric(
-                      horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
-                    ),
-                    color: PdfColors.grey,
+                ),
+                pw.Container(
+                  // width: 22,
+                  height: 0.5,
+                  margin: pw.EdgeInsets.symmetric(
+                    horizontal:
+                        AppDimensions.getResponsiveHeight(context) * 0.002,
                   ),
-                  pw.Text(
-                    // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
-                    "${product["PIECE"]}",
-                    style: const pw.TextStyle(
-                      fontSize: 11.5,
-                      color: PdfColors.black,
-                    ),
+                  color: PdfColors.grey,
+                ),
+                pw.Text(
+                  // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
+                  "${product["PIECE"]}",
+                  style: const pw.TextStyle(
+                    fontSize: 11.5,
+                    color: PdfColors.black,
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
             //),
             pw.Flexible(
               child: pw.Column(
@@ -510,7 +873,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                      AppDimensions.getResponsiveHeight(context) * 0.002,
+                          AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -541,7 +904,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                      AppDimensions.getResponsiveHeight(context) * 0.002,
+                          AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -572,14 +935,15 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                      AppDimensions.getResponsiveHeight(context) * 0.002,
+                          AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
                   pw.Text(
                     // "${widget.estimationResponseModel!.dataResult!.payload!.payload!.listItem?[index].piece}",
                     //diamondRate.toString(),
-                    (product["MAKINGRATE"] + product["WASTAGEAMOUNT"]).toStringAsFixed(2),
+                    (product["MAKINGRATE"] + product["WASTAGEAMOUNT"])
+                        .toStringAsFixed(2),
                     style: const pw.TextStyle(
                       fontSize: 11.5,
                       color: PdfColors.black,
@@ -707,14 +1071,14 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   }
 
   pw.Widget _buildFooter(Size size) {
-     //final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
+    //final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
     /*final details = widget.estimationResponseModel!.dataResult!.payload!.payload!
             .salesPerson ??
         "";*/
 
     // double totalAmount = 0.00;
     debugPrint("TotalTaxableAmount---->$totalTaxableAmount");
-     /*for(var i in details){
+    /*for(var i in details){
       totalAmount += double.tryParse(i.estimateProductDetails!.lineamount!) ?? 0.00;
     }*/
 
@@ -736,8 +1100,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             pw.Expanded(
               child: pw.Text(
                 details.isNotEmpty
-                ? AppWidgets.formatIndianNumber(totalTaxableAmount)
-                   // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                    ? AppWidgets.formatIndianNumber(totalTaxableAmount)
+                    // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
@@ -763,8 +1127,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             pw.Expanded(
               child: pw.Text(
                 details.isNotEmpty
-                    ?AppWidgets.formatIndianNumber(totalTaxAmount)
-                // ? totalTaxAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                    ? AppWidgets.formatIndianNumber(totalTaxAmount)
+                    // ? totalTaxAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
@@ -790,8 +1154,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             pw.Expanded(
               child: pw.Text(
                 details.isNotEmpty
-                    ?AppWidgets.formatIndianNumber(totalAmount)
-                // ?  totalAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                    ? AppWidgets.formatIndianNumber(totalAmount)
+                    // ?  totalAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(

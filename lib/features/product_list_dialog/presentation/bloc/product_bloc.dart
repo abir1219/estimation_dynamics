@@ -24,8 +24,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   ProductBloc(this._productRepository) : super(const ProductState()) {
     on<ScanItemEvent>(_scanItem);
     on<SelectProductEvent>(_selectProduct);
+    on<DeleteEstimationEvent>(_deleteEstimation);
     // on<ResetProductStateEvent>(_resetProductState);
     on<SubmitProductEvent>(_submitProductState);
+    on<EditEstimateProductEvent>(_editEstimateProduct);
     on<DeleteProductStateEvent>(_deleteProductState);
     on<UnlockItemEvent>(_unlockItem);
     on<ApiStatusChangeEvent>(_changeApiStatus);
@@ -44,7 +46,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
   void _changeApiStatus(
       ApiStatusChangeEvent event, Emitter<ProductState> emit) {
     // updatedList.clear();
-    emit(state.copyWith(status: ProductStatus.initial,isScanned: false));
+    emit(state.copyWith(status: ProductStatus.initial, isScanned: false));
   }
 
   FutureOr<void> _scanItem(
@@ -241,6 +243,80 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           debugPrint("UNLOCK_ITEM_ERROR-->$error");
         },
       );
+    }
+  }
+
+  FutureOr<void> _editEstimateProduct(
+    EditEstimateProductEvent event,
+    Emitter<ProductState> emit,
+  ) {
+
+    debugPrint("---EDIT_ESTIMATION_PRODUCT---");
+    final listItem = event.listItem;
+
+    // Early exit (important for performance & safety)
+    // if (listItem.isEmpty) {
+      /*debugPrint("---EDIT_ESTIMATION_PRODUCT_LENGTH---");
+      emit(state.copyWith(
+        status: ProductStatus.submittedItems,
+        selectedProductList: const [],
+        totalAmount: 0.0,
+      ));*/
+    // }
+
+    // Collect productIds for fast lookup
+    final productIds = listItem
+        .map((e) => e.productId)
+        .whereType<int>() // null-safe
+        .toSet();
+
+    double totalAmount = 0.0;
+
+    final List<ProductPayload> productList = updatedList.where((product) {
+      final isMatched = productIds.contains(product.productId);
+      if (isMatched) {
+        totalAmount += product.lineTotal ?? 0.0;
+      }
+      return isMatched;
+    }).toList();
+
+    emit(state.copyWith(
+      status: ProductStatus.submittedItems,
+      selectedProductList: productList,
+      totalAmount: totalAmount,
+    ));
+  }
+
+  FutureOr<void> _deleteEstimation(
+      DeleteEstimationEvent event, Emitter<ProductState> emit) async {
+    emit(state.copyWith(status: ProductStatus.scanLoading));
+    String jsonString = '''
+  {
+    "RequestVal": "{\\"Operation\\":\\"DELETEESTIMATION\\",\\"CANCELREASON\\":\\"test\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+    "ObjStrVal": "${event.referenceNo}"
+  }
+  ''';
+
+    Map<String, dynamic> header = {
+      'Authorization':
+          'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
+      'oun': ConstantVariable.operatingUnitNumber,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    try {
+      await _productRepository.scanItem(jsonString, header);
+
+      emit(state.copyWith(
+        status: ProductStatus.scanLoaded,
+        isScanned: true,
+      ));
+    } catch (error) {
+      debugPrint("ScanItem_ERROR-->$error");
+      // emit(const ProductState(status: ProductStatus.initial));
+      emit(const ProductState(status: ProductStatus.submitError));
+      // Optionally, you can add an error field in ProductState and emit here
     }
   }
 }

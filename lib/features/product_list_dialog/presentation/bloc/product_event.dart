@@ -20,6 +20,32 @@ final class ScanItemEvent extends ProductEvent {
   List<Object?> get props => [itemNo, refNo, customer, salesman];
 }
 
+final class EditEstimateProductEvent extends ProductEvent {
+  final String customerId;
+  final String customerName;
+  final String salesman;
+  final List<ListItem> listItem;
+
+  const EditEstimateProductEvent(
+      {required this.customerId,
+      required this.customerName,
+      required this.listItem,
+      required this.salesman});
+
+  @override
+  List<Object?> get props => [customerId, customerName, salesman, listItem];
+}
+
+final class DeleteEstimationEvent extends ProductEvent{
+  final String referenceNo;
+
+  const DeleteEstimationEvent({required this.referenceNo});
+
+  @override
+  List<Object?> get props => [referenceNo];
+
+}
+
 final class UnlockItemEvent extends ProductEvent {
   final bool? isScanned;
   final String? itemNo;
@@ -37,13 +63,13 @@ final class UnlockItemEvent extends ProductEvent {
       required this.salesman});
 
   @override
-  List<Object?> get props => [itemNo, refNo,isScanned, lineNo, customer, salesman];
+  List<Object?> get props =>
+      [itemNo, refNo, isScanned, lineNo, customer, salesman];
 }
 
-final class ApiStatusChangeEvent extends ProductEvent{
+final class ApiStatusChangeEvent extends ProductEvent {
   @override
   List<Object?> get props => [];
-
 }
 
 final class SelectProductEvent extends ProductEvent {

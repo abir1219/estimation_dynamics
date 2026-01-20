@@ -4,7 +4,7 @@ sealed class EstimationEvent extends Equatable {
   const EstimationEvent();
 }
 
-final class GenerateEstimationNoEvent extends EstimationEvent{
+final class GenerateEstimationNoEvent extends EstimationEvent {
   @override
   List<Object?> get props => [];
 }
@@ -16,6 +16,19 @@ final class SelectSalesmanEvent extends EstimationEvent {
 
   @override
   List<Object?> get props => [salesman];
+}
+
+class UpdateEstimationFromEditEvent extends EstimationEvent {
+  final CustomerData? customerData;
+  final SalesmanPayload? salesman;
+
+  const UpdateEstimationFromEditEvent({
+    this.customerData,
+    this.salesman,
+  });
+
+  @override
+  List<Object?> get props => [customerData, salesman];
 }
 
 final class ResetSalesmanStateEvent extends EstimationEvent {
@@ -35,10 +48,11 @@ class SearchEmployeeEvent extends EstimationEvent {
 final class SetSelectedCustomerEvent extends EstimationEvent {
   final Customer? customer;
   final CustomerData? customerData;
-  const SetSelectedCustomerEvent({required this.customer,this.customerData});
+
+  const SetSelectedCustomerEvent({required this.customer, this.customerData});
 
   @override
-  List<Object?> get props => [customer,customerData];
+  List<Object?> get props => [customer, customerData];
 }
 
 final class ResetEstimationEvent extends EstimationEvent {
@@ -54,4 +68,3 @@ final class FetchSalesmanEvent extends EstimationEvent {
   @override
   List<Object?> get props => [];
 }
-

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:estimation_dynamics/features/add_customer_dialog/models/add_customer_model.dart';
+import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/features/salesman_dialog/data/model/employee_model.dart';
 import 'package:flutter/material.dart';
 
