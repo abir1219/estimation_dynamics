@@ -1,3 +1,4 @@
+import 'package:estimation_dynamics/features/product_list_dialog/data/model/product_model.dart';
 import 'package:estimation_dynamics/features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import 'package:estimation_dynamics/widgets/app_widgets.dart';
 import 'package:flutter/material.dart';
@@ -281,8 +282,48 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   if (state is EstimationDataState && state.refNumber != null) {
                     refNumber = state.refNumber!;
                     debugPrint("NEW REF NUMBER --> $refNumber");
+                    final productBloc = context.read<ProductBloc>();
+                    final productState = productBloc.state;
+                    //final selectedProducts = productState.selectedProductList;
 
-                    _continueEditFlow(); // ✅ SAFE ENTRY POINT
+                    final estimationPayload = widget
+                        .estimationResponseModel?.dataResult?.payload?.payload;
+
+                    /*final productIds = estimationPayload!.listItem!
+                        .map((e) => e.productId)
+                        .whereType<int>() // null-safe
+                        .toSet();*/
+                    final productIdStrings = estimationPayload!.listItem!
+                        .map((e) => e.productId?.toString())
+                        .whereType<String>()
+                        .toSet();
+
+                    debugPrint("PRODUCT_ID-->$productIdStrings");
+
+                    /*List<ProductPayload> productList =
+                        productState.selectedProductList!
+                            .where(
+                              (product) {
+                                debugPrint("PRODUCT=-->$product");
+                               return productIds.contains(product.productId);
+                              }
+                            )
+                            .toList();*/
+
+                    debugPrint("LEN-->${productState.selectedProductList!.length}");
+
+                    final productList = productState.selectedProductList!
+                        .where((product) {
+                          debugPrint("PRODUCT___>$product");
+                          return productIdStrings.contains(product.productId.toString());
+                    })
+                        .toList();
+
+                    debugPrint("PRODUCT_LIST-->${productList.length}");
+                    debugPrint("PRODUCT_LIST-->${productList.toString()}");
+
+                    _continueEditFlow(
+                        productBloc, productList); // ✅ SAFE ENTRY POINT
                   }
                 },
                 child: PdfPreview(
@@ -378,8 +419,29 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
 
                   onPressed: () {
                     fetchData();
-
                     final estimationBloc = context.read<EstimationBloc>();
+                    final estimationPayload = widget
+                        .estimationResponseModel?.dataResult?.payload?.payload;
+                    if (estimationPayload == null) return;
+
+                    final productBloc = context.read<ProductBloc>();
+                    final productState = productBloc.state;
+                    final selectedProducts = productState.selectedProductList;
+
+                    productBloc.add(
+                      DeleteEstimationEvent(referenceNo: widget.refNumber),
+                    );
+
+                    // 2️⃣ Restore product list into bloc
+                    /*productBloc.add(
+                      EditEstimateProductEvent(
+                        customerId: estimationPayload.customerId!,
+                        customerName: estimationPayload.custName ?? '',
+                        listItem: estimationPayload.listItem ?? const [],
+                        salesman: estimationPayload.salesPerson ?? '',
+                      ),
+                    );*/
+
                     estimationBloc.add(GenerateEstimationNoEvent());
                     /*if (refNumber == null) {
                       debugPrint("RefNumber NULL → generating");
@@ -392,7 +454,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                       return;
                     }*/
 
-                   /* Future.delayed(
+                    /* Future.delayed(
                       Duration(milliseconds: 300),
                       () => _continueEditFlow(),
                     );*/
@@ -449,15 +511,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     );
   }
 
-  void _continueEditFlow() {
-    final estimationPayload =
-        widget.estimationResponseModel?.dataResult?.payload?.payload;
-    if (estimationPayload == null) return;
-
-    final productBloc = context.read<ProductBloc>();
-    final productState = productBloc.state;
-    final selectedProducts = productState.selectedProductList;
-
+  void _continueEditFlow(
+      ProductBloc productBloc, List<ProductPayload>? selectedProducts) {
     if (selectedProducts == null || selectedProducts.isEmpty) {
       debugPrint("No products selected");
       return;
@@ -469,7 +524,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     }
 
     // 1️⃣ Delete previous estimation
-    productBloc.add(
+    /*productBloc.add(
       DeleteEstimationEvent(referenceNo: widget.refNumber),
     );
 
@@ -481,7 +536,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
         listItem: estimationPayload.listItem ?? const [],
         salesman: estimationPayload.salesPerson ?? '',
       ),
-    );
+    );*/
 
     // 3️⃣ Scan each product with NEW ref number
     for (final item in selectedProducts) {
@@ -491,8 +546,12 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           refNo: refNumber!, // ✅ NEW ref number
           customer: customer,
           salesman: salesman,
+          fromPdf: true
         ),
       );
+      context
+          .read<ProductBloc>()
+          .add(SelectProductEvent(product: item));
     }
 
     // 4️⃣ Navigate

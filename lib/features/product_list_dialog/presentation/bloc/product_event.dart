@@ -9,15 +9,17 @@ final class ScanItemEvent extends ProductEvent {
   final String? refNo;
   final dynamic customer;
   final SalesmanPayload? salesman;
+  final bool fromPdf;
 
   const ScanItemEvent(
-      {required this.itemNo,
+      {this.fromPdf = false,
+      required this.itemNo,
       required this.refNo,
       required this.customer,
       required this.salesman});
 
   @override
-  List<Object?> get props => [itemNo, refNo, customer, salesman];
+  List<Object?> get props => [itemNo, refNo, customer, salesman, fromPdf];
 }
 
 final class EditEstimateProductEvent extends ProductEvent {
@@ -36,14 +38,13 @@ final class EditEstimateProductEvent extends ProductEvent {
   List<Object?> get props => [customerId, customerName, salesman, listItem];
 }
 
-final class DeleteEstimationEvent extends ProductEvent{
+final class DeleteEstimationEvent extends ProductEvent {
   final String referenceNo;
 
   const DeleteEstimationEvent({required this.referenceNo});
 
   @override
   List<Object?> get props => [referenceNo];
-
 }
 
 final class UnlockItemEvent extends ProductEvent {

@@ -55,6 +55,9 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
     // double lineNum = selectedProduct.length.toDouble() + 1;
     // double lineNum = state.productList!.length.toDouble() + 1;
+    if(event.fromPdf == true){
+      updatedList.clear();
+    }
     double lineNum = updatedList.length.toDouble() + 1;
 
     debugPrint("LINE_NUMBER--->$lineNum");
@@ -182,12 +185,13 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           EstimationResponseModel estimationResponseData =
               EstimationResponseModel.fromJson(value);
           // final EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(jsonDecode(value));
-
+          // updatedList.clear();
+          // updatedList = const[];
           emit(state.copyWith(
             status: ProductStatus.submitDone,
             estimationResponseModel: estimationResponseData,
             productList: [],
-            selectedProductList: [],
+            //selectedProductList: [],
             //scannedItem: productModel.dataResult!.payload,
           ));
         },
