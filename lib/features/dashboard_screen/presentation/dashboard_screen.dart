@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
@@ -17,9 +20,7 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-
 class _DashboardScreenState extends State<DashboardScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -81,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           colors: [
             AppColors.APP_SCREEN_BACKGROUND_COLOR,
             AppColors.APP_SCREEN_BACKGROUND_COLOR,
-            AppColors.APP_SCREEN_BACKGROUND_COLOR.withValues(alpha:0.19),
+            AppColors.APP_SCREEN_BACKGROUND_COLOR.withValues(alpha: 0.19),
           ],
         ),
       ),
@@ -114,24 +115,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildDashboardRow(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      spacing: AppDimensions.getResponsiveHeight(context) * 0.04,
       children: [
-        Expanded(
-          child: _buildDashboardContainer(
-            name: "Estimation",
-            iconName: "assets/images/estimation.png",
-            onClick: () => context.go(AppPages.ESTIMATION),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: _buildDashboardContainer(
+                  name: "Estimation",
+                  iconName: "assets/images/estimation.png",
+                  onClick: () {
+                    context
+                        .read<EstimationBloc>()
+                        .add(GenerateEstimationNoEvent());
+                  }),
+            ),
+            SizedBox(width: AppDimensions.getResponsiveWidth(context) * 0.02),
+            Expanded(
+              child: _buildDashboardContainer(
+                name: "Sales Advice",
+                iconName: "assets/images/sales_advice.png",
+                onClick: () {},
+              ),
+            ),
+          ],
         ),
-        SizedBox(width: AppDimensions.getResponsiveWidth(context) * 0.02),
-        Expanded(
-          child: _buildDashboardContainer(
-            name: "Sales Advice",
-            iconName: "assets/images/sales_advice.png",
-            onClick: () {},
-          ),
-        ),
+        BlocConsumer<EstimationBloc, EstimationState>(
+            builder: (context, state) {
+          if (state is EstimationDataState) {
+            if (state.isLoading) {
+              return Align(
+                alignment: Alignment.bottomCenter,
+                child: Center(
+                  child: SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Platform.isAndroid
+                        ? const CircularProgressIndicator(
+                            color: AppColors.BUTTON_COLOR)
+                        : const CupertinoActivityIndicator(),
+                  ),
+                ),
+              );
+            }
+            return SizedBox();
+          } else {
+            return const SizedBox.shrink();
+          }
+        }, listener: (context, state) {
+          if (state is EstimationDataState) {
+            if (state.isLoading == false) {
+              context.go(AppPages.ESTIMATION);
+            }
+          }
+        }),
       ],
     );
   }

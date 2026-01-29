@@ -32,7 +32,7 @@ class _AddEstimationScreenState extends State<AddEstimationScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
+    // context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
   }
 
   @override
