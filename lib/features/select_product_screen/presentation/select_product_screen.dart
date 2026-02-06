@@ -151,7 +151,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
     return BlocConsumer<ProductBloc, ProductState>(
       listener: (context, state) {
         if (state.status == ProductStatus.submitDone) {
-          context.read<EstimationBloc>().add(ResetEstimationEvent());
+          // context.read<EstimationBloc>().add(ResetEstimationEvent());
           _showSuccessDialog();
 
           Future.delayed(const Duration(milliseconds: 2500), () {

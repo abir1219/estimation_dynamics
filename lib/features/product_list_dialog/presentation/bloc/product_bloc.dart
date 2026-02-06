@@ -182,8 +182,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           //final productModel = ProductModel.fromJson(value);
           //debugPrint("VALUE-->${jsonDecode(value)}");
           // var val = jsonDecode(value);
-          EstimationResponseModel estimationResponseData =
-              EstimationResponseModel.fromJson(value);
+          EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(value);
           // final EstimationResponseModel estimationResponseData = EstimationResponseModel.fromJson(jsonDecode(value));
           // updatedList.clear();
           // updatedList = const[];
@@ -293,10 +292,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   FutureOr<void> _deleteEstimation(
       DeleteEstimationEvent event, Emitter<ProductState> emit) async {
-    emit(state.copyWith(status: ProductStatus.scanLoading));
+    emit(state.copyWith(status: ProductStatus.deleteLoading));
     String jsonString = '''
   {
-    "RequestVal": "{\\"Operation\\":\\"DELETEESTIMATION\\",\\"CANCELREASON\\":\\"test\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+    "RequestVal": "{\\"Operation\\":\\"DELETEESTIMATION\\",\\"CANCELREASON\\":\\"test\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\",\\"RefType\\":11}",
     "ObjStrVal": "${event.referenceNo}"
   }
   ''';
@@ -313,7 +312,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       await _productRepository.scanItem(jsonString, header);
 
       emit(state.copyWith(
-        status: ProductStatus.scanLoaded,
+        status: ProductStatus.deleteSuccess,
         isScanned: true,
       ));
     } catch (error) {

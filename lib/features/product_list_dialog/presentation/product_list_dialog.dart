@@ -179,7 +179,7 @@ class _ProductListDialogState extends State<ProductListDialog>{
                                     ));
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
+                                    const SnackBar(
                                         content:
                                             Text("Scan an item to continue")));
                               }
@@ -197,10 +197,10 @@ class _ProductListDialogState extends State<ProductListDialog>{
                                         .addPostFrameCallback((_) {
                                       _showAlertDialog();
                                     });
-                                    return SizedBox.shrink();
+                                    return const SizedBox.shrink();
 
                                   case ProductStatus.initial ||
-                                        ProductStatus.submitDone:
+                                        ProductStatus.submitDone|| ProductStatus.deleteLoading || ProductStatus.deleteSuccess:
                                     return const SizedBox.shrink();
 
                                   case ProductStatus.scanLoading:

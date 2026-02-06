@@ -10,7 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Set system UI styles
-  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     systemNavigationBarColor: AppColors.BUTTON_COLOR,
     // Navigation bar color
     statusBarColor: AppColors.BUTTON_COLOR, // Status bar color
@@ -19,6 +19,6 @@ void main() async {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]).then((_) async {
-    runApp(MyApp());
+    runApp(const MyApp());
   });
 }

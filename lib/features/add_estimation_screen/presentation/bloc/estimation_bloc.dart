@@ -21,7 +21,7 @@ part 'estimation_state.dart';
 class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
   final EstimationRepository _estimationRepository;
 
-  EstimationBloc(this._estimationRepository) : super(EstimationDataState()) {
+  EstimationBloc(this._estimationRepository) : super(const EstimationDataState()) {
     on<GenerateEstimationNoEvent>(_generateEstimationNumber);
     on<SetSelectedCustomerEvent>(_onSetSelectedCustomer);
     on<ResetEstimationEvent>(_onResetEstimation);

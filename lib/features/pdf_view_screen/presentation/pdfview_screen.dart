@@ -25,11 +25,10 @@ class PdfviewScreen extends StatefulWidget {
   final ReprintEstimationModel? reprintEstimationModel;
   final String refNumber;
 
-  const PdfviewScreen(
-      {super.key,
-      this.estimationResponseModel,
-      this.reprintEstimationModel,
-      required this.refNumber});
+  const PdfviewScreen({super.key,
+    this.estimationResponseModel,
+    this.reprintEstimationModel,
+    required this.refNumber});
 
   @override
   State<PdfviewScreen> createState() => _PdfviewScreenState();
@@ -49,6 +48,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
 
   String? refNumber;
 
+  bool _isEditFlowInProgress = false;
+
   dynamic customer;
   SalesmanPayload? salesman;
 
@@ -58,8 +59,12 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
   }
 
   void fetchData() {
-    final estimationState = context.read<EstimationBloc>().state;
-    final productState = context.read<ProductBloc>().state;
+    final estimationState = context
+        .read<EstimationBloc>()
+        .state;
+    final productState = context
+        .read<ProductBloc>()
+        .state;
 
     if (estimationState is! EstimationDataState) return;
 
@@ -89,63 +94,13 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     }
   }
 
-  /*void fetchData() {
-    final estimationState = context.read<EstimationBloc>().state;
-    final productState = context.read<ProductBloc>().state;
-
-    debugPrint("STATE-->$estimationState");
-
-    if (estimationState is EstimationDataState) {
-      // 1️⃣ Ref number (snapshot only)
-      refNumber = estimationState.refNumber;
-      debugPrint("refNumber-->$refNumber");
-
-      // 🔥 Trigger generation if missing (ASYNC – result handled elsewhere)
-      */ /*if (refNumber == null && !estimationState.isLoading) {
-        context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
-      }*/ /*
-
-      // 2️⃣ Customer resolution (priority-based)
-      if (estimationState.customer != null) {
-        customer = estimationState.customer!;
-      } else if (estimationState.customerData != null) {
-        customer = estimationState.customerData!;
-      } else if (productState
-              .estimationResponseModel?.dataResult?.payload?.payload !=
-          null) {
-        final payload =
-            productState.estimationResponseModel!.dataResult!.payload!.payload!;
-
-        customer = Customer(
-          accountNumber: payload.customerId ?? '',
-          fullName: payload.custName ?? '',
-        );
-      }
-
-      // 3️⃣ Salesman resolution (safe fallback)
-      if (estimationState.salesman != null) {
-        salesman = estimationState.salesman!;
-      } else if (productState
-              .estimationResponseModel?.dataResult?.payload?.payload !=
-          null) {
-        final payload =
-            productState.estimationResponseModel!.dataResult!.payload!.payload!;
-
-        salesman = SalesmanPayload(
-          text: payload.salesPerson ?? '',
-          value: '',
-        );
-      }
-    }
-  }*/
-
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.sizeOf(context);
     products = [];
     if (widget.estimationResponseModel != null) {
       details = widget.estimationResponseModel!.dataResult!.payload!.payload!
-              .salesPerson ??
+          .salesPerson ??
           "";
 
       productDetails["products"] = widget
@@ -161,55 +116,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
         productDetails["products"].addAll(
           prodList.map((e) => e.toJson()).toList(),
         );
-
-        /*for(var prod in prodList){
-          for(var ing in prod.ingredients){
-            debugPrint("ItemID===>${ing.itemId}");
-            if (ing.itemId.toLowerCase() == 'diamond') {
-              debugPrint("DiaMond===>${ing.itemId}");
-              debugPrint("-->${ing.rate}");
-              diamondRate += ing.rate;
-              // diamondRate += ing.rate;
-              debugPrint("DiaMondRATE===>$diamondRate");
-              // diamondWtList.add(diamondRate);
-            }else{
-              debugPrint("DiaMondRATE_ELSE===>");
-              diamondRate = 0.0;
-              // diamondWtList.add(diamondRate);
-            }
-          }
-        }*/
       }
-      // diamondWtList.add(diamondRate);
-      // debugPrint("DiaMondRATEList===>${diamondWtList.length}");
-      /*double diamondRate = 0.0;
-      for (var ingredient in widget
-          .reprintEstimationModel!
-          .dataResult!
-          .payload
-          .payload) {
-        //[0].ingredients!
-
-        for(var ing in ingredient){
-          if (ing.itemId.toLowerCase() == 'diamond') {
-            debugPrint("-->${ing.rate}");
-            diamondRate += ing.rate;
-          }
-        }
-      }*/
-
-      /*for(var prod in payload){
-        productDetails["products"] = prod
-            .map((e) => e.toJson())
-            .toList();
-      }*/
-      /*productDetails["products"] = widget
-          .reprintEstimationModel!
-          .dataResult!
-          .payload
-          .payload[0]
-          .map((e) => e.toJson())
-          .toList();*/
     }
 
     products = productDetails["products"] as List;
@@ -235,7 +142,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
               onTap: () {
                 //context.read<EstimationBloc>().add(LogoutEvent());
                 //context.read<LegalEntityBloc>().add(ClearStateEvent());
-                Future.delayed(Duration(milliseconds: 500), () {
+                Future.delayed(const Duration(milliseconds: 500), () {
                   if (mounted) {
                     navigatorKey.currentContext!.go(
                       // AppPages.LOGIN,
@@ -256,7 +163,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                 ),
                 height: 24,
                 width: 24,
-                child: Icon(Icons.home, color: Colors.white),
+                child: const Icon(Icons.home, color: Colors.white),
               ),
             ),
           ],
@@ -272,71 +179,87 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             final adjustedSize = orientation == Orientation.portrait
                 ? size
                 : Size(
-                    size.height,
-                    size.width,
-                  ); // Swap dimensions for landscape
+              size.height,
+              size.width,
+            ); // Swap dimensions for landscape
 
             return SafeArea(
-              child: BlocListener<EstimationBloc, EstimationState>(
-                listener: (context, state) {
-                  if (state is EstimationDataState && state.refNumber != null) {
-                    refNumber = state.refNumber!;
-                    debugPrint("NEW REF NUMBER --> $refNumber");
-                    final productBloc = context.read<ProductBloc>();
-                    final productState = productBloc.state;
-                    //final selectedProducts = productState.selectedProductList;
+                child: Stack(
+                  children: [
+                    MultiBlocListener(
+                      listeners: [
+                        // 🔹 STEP 1: After Delete → Generate Estimation No
+                        BlocListener<ProductBloc, ProductState>(
+                          listenWhen: (prev, curr) =>
+                          curr.status == ProductStatus.deleteSuccess,
+                          listener: (context, state) {
+                            context
+                                .read<EstimationBloc>()
+                                .add(GenerateEstimationNoEvent());
+                          },
+                        ),
+                        // 🔹 STEP 2: After Ref Number → Continue Edit Flow
+                        BlocListener<EstimationBloc, EstimationState>(
+                          listenWhen: (prev, curr) =>
+                          curr is EstimationDataState && curr.refNumber != null,
+                          listener: (context, state) {
+                            final estimationState = state as EstimationDataState;
 
-                    final estimationPayload = widget
-                        .estimationResponseModel?.dataResult?.payload?.payload;
+                            refNumber = estimationState.refNumber!;
+                            debugPrint("NEW REF NUMBER --> $refNumber");
 
-                    /*final productIds = estimationPayload!.listItem!
-                        .map((e) => e.productId)
-                        .whereType<int>() // null-safe
-                        .toSet();*/
-                    final productIdStrings = estimationPayload!.listItem!
-                        .map((e) => e.productId?.toString())
-                        .whereType<String>()
-                        .toSet();
+                            final productBloc = context.read<ProductBloc>();
+                            final productState = productBloc.state;
 
-                    debugPrint("PRODUCT_ID-->$productIdStrings");
+                            final estimationPayload = widget
+                                .estimationResponseModel
+                                ?.dataResult?.payload?.payload;
 
-                    /*List<ProductPayload> productList =
-                        productState.selectedProductList!
-                            .where(
-                              (product) {
-                                debugPrint("PRODUCT=-->$product");
-                               return productIds.contains(product.productId);
-                              }
-                            )
-                            .toList();*/
+                            if (estimationPayload == null) return;
 
-                    debugPrint("LEN-->${productState.selectedProductList!.length}");
+                            final productIdStrings = estimationPayload.listItem!
+                                .map((e) => e.productId?.toString())
+                                .whereType<String>()
+                                .toSet();
 
-                    final productList = productState.selectedProductList!
-                        .where((product) {
-                          debugPrint("PRODUCT___>$product");
-                          return productIdStrings.contains(product.productId.toString());
-                    })
-                        .toList();
+                            final productList = productState
+                                .selectedProductList!
+                                .where((product) =>
+                                productIdStrings
+                                    .contains(product.productId.toString()))
+                                .toList();
 
-                    debugPrint("PRODUCT_LIST-->${productList.length}");
-                    debugPrint("PRODUCT_LIST-->${productList.toString()}");
+                            debugPrint(
+                                "PRODUCT_LIST --> ${productList.length}");
 
-                    _continueEditFlow(
-                        productBloc, productList); // ✅ SAFE ENTRY POINT
-                  }
-                },
-                child: PdfPreview(
-                  allowSharing: false,
-                  allowPrinting: true,
-                  canChangeOrientation: false,
-                  canChangePageFormat: false,
-                  canDebug: false,
-                  useActions: false,
-                  build: (format) => _createPdf(format, adjustedSize),
-                ),
-              ),
-            );
+                            _continueEditFlow(productBloc, productList);
+                          },
+                        ),
+                      ],
+                      child: PdfPreview(
+                        allowSharing: false,
+                        allowPrinting: true,
+                        canChangeOrientation: false,
+                        canChangePageFormat: false,
+                        canDebug: false,
+                        useActions: false,
+                        build: (format) => _createPdf(format, adjustedSize),
+                      ),
+                    ),
+                    // 🔄 FULL-SCREEN LOADER
+                    if (_isEditFlowInProgress)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.BUTTON_COLOR,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ));
           },
         ),
         floatingActionButton: Padding(
@@ -369,141 +292,24 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                 FloatingActionButton.small(
                   heroTag: 'f1',
                   backgroundColor: AppColors.DEEP_YELLOW_COLOR,
-                  /*onPressed: () {
+                  onPressed: () {
+                    setState(() {
+                      _isEditFlowInProgress = true; // 🔄 START LOADER
+                    });
+
                     fetchData();
 
                     final estimationPayload = widget
                         .estimationResponseModel?.dataResult?.payload?.payload;
+
                     if (estimationPayload == null) return;
-
-                    final productBloc = context.read<ProductBloc>();
-                    final estimationBloc = context.read<EstimationBloc>();
-
-                    final productState = productBloc.state;
-                    final selectedProducts = productState.selectedProductList;
-
-                    if (selectedProducts == null || selectedProducts.isEmpty) {
-                      return;
-                    }
-
-                    // 🔹 1. Generate estimation number (async, listener will handle update)
-                    estimationBloc.add(GenerateEstimationNoEvent());
-
-                    // 🔹 2. Scan items (safe iteration)
-                    for (final item in selectedProducts) {
-                      final productId = item.productId;
-
-                      productBloc.add(
-                        ScanItemEvent(
-                          itemNo: productId.toString().trim(),
-                          refNo: refNumber,
-                          customer: customer,
-                          salesman: salesman,
-                        ),
-                      );
-                    }
-
-                    // 🔹 3. Edit estimate product
-                    productBloc.add(
-                      EditEstimateProductEvent(
-                        customerId: estimationPayload.customerId!,
-                        customerName: estimationPayload.custName ?? '',
-                        listItem: estimationPayload.listItem ?? const [],
-                        salesman: estimationPayload.salesPerson ?? '',
-                      ),
-                    );
-
-                    // 🔹 4. Navigate
-                    context.go(AppPages.SELECT_PRODUCT);
-                  },*/
-
-                  onPressed: () {
-                    fetchData();
-                    final estimationBloc = context.read<EstimationBloc>();
-                    final estimationPayload = widget
-                        .estimationResponseModel?.dataResult?.payload?.payload;
-                    if (estimationPayload == null) return;
-
-                    final productBloc = context.read<ProductBloc>();
-                    final productState = productBloc.state;
-                    final selectedProducts = productState.selectedProductList;
-
-                    productBloc.add(
-                      DeleteEstimationEvent(referenceNo: widget.refNumber),
-                    );
-
-                    // 2️⃣ Restore product list into bloc
-                    /*productBloc.add(
-                      EditEstimateProductEvent(
-                        customerId: estimationPayload.customerId!,
-                        customerName: estimationPayload.custName ?? '',
-                        listItem: estimationPayload.listItem ?? const [],
-                        salesman: estimationPayload.salesPerson ?? '',
-                      ),
-                    );*/
-
-                    estimationBloc.add(GenerateEstimationNoEvent());
-                    /*if (refNumber == null) {
-                      debugPrint("RefNumber NULL → generating");
-                      estimationBloc.add(GenerateEstimationNoEvent());
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Preparing estimation, tap again")),
-                      );
-                      return;
-                    }*/
-
-                    /* Future.delayed(
-                      Duration(milliseconds: 300),
-                      () => _continueEditFlow(),
-                    );*/
-                  },
-                  child: const Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                  ),
-                ),
-              /*FloatingActionButton.small(
-                  heroTag: 'f1',
-                  backgroundColor: AppColors.DEEP_YELLOW_COLOR,
-                  onPressed: () {
-                    fetchData();
-                    final payload = widget
-                        .estimationResponseModel?.dataResult?.payload?.payload;
-
-                    if (payload == null) return;
-
-                    var productState = context.read<ProductBloc>().state;
-
-                    context.read<EstimationBloc>().add(GenerateEstimationNoEvent());
-
-                    for(var item in productState.selectedProductList!){
-                      context.read<ProductBloc>().add(ScanItemEvent(
-                        itemNo: item.productId.toString().trim(),
-                        refNo: refNumber,
-                        customer: customer,
-                        salesman: salesman,
-                      ));
-                    }
 
                     context.read<ProductBloc>().add(
-                          EditEstimateProductEvent(
-                            customerId: payload.customerId!,
-                            customerName: payload.custName ?? '',
-                            listItem: payload.listItem ?? const [],
-                            salesman: payload.salesPerson ?? '',
-                          ),
-                        );
-
-                    // ✅ Navigate immediately (Bloc is synchronous here)
-                    context.go(AppPages.SELECT_PRODUCT);
+                      DeleteEstimationEvent(referenceNo: widget.refNumber),
+                    );
                   },
-                  child: const Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                  ),
-                )*/
+                  child: const Icon(Icons.edit, color: Colors.white),
+                ),
             ],
           ),
         ),
@@ -511,8 +317,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     );
   }
 
-  void _continueEditFlow(
-      ProductBloc productBloc, List<ProductPayload>? selectedProducts) {
+  void _continueEditFlow(ProductBloc productBloc,
+      List<ProductPayload>? selectedProducts) {
     if (selectedProducts == null || selectedProducts.isEmpty) {
       debugPrint("No products selected");
       return;
@@ -523,92 +329,35 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       return;
     }
 
-    // 1️⃣ Delete previous estimation
-    /*productBloc.add(
-      DeleteEstimationEvent(referenceNo: widget.refNumber),
-    );
-
-    // 2️⃣ Restore product list into bloc
-    productBloc.add(
-      EditEstimateProductEvent(
-        customerId: estimationPayload.customerId!,
-        customerName: estimationPayload.custName ?? '',
-        listItem: estimationPayload.listItem ?? const [],
-        salesman: estimationPayload.salesPerson ?? '',
-      ),
-    );*/
-
     // 3️⃣ Scan each product with NEW ref number
+    int count = 0;
     for (final item in selectedProducts) {
       productBloc.add(
         ScanItemEvent(
-          itemNo: item.itemBarcode.toString().trim(),
-          refNo: refNumber!, // ✅ NEW ref number
-          customer: customer,
-          salesman: salesman,
-          fromPdf: true
-        ),
+            itemNo: item.itemBarcode.toString().trim(),
+            refNo: refNumber!,
+            // ✅ NEW ref number
+            customer: customer,
+            salesman: salesman,
+            fromPdf: count == 0 ? true:false),
       );
-      context
-          .read<ProductBloc>()
-          .add(SelectProductEvent(product: item));
+      context.read<ProductBloc>().add(SelectProductEvent(product: item));
+      count++;
     }
-
+// ✅ END FLOW
+    setState(() {
+      _isEditFlowInProgress = false;
+    });
     // 4️⃣ Navigate
     context.go(AppPages.SELECT_PRODUCT);
   }
 
-  /*void _continueEditFlow() {
-    final estimationPayload =
-        widget.estimationResponseModel?.dataResult?.payload?.payload;
-    if (estimationPayload == null) return;
-
-    final productBloc = context.read<ProductBloc>();
-
-    productBloc.add(DeleteEstimationEvent(referenceNo: widget.refNumber));
-
-    productBloc.add(
-      EditEstimateProductEvent(
-        customerId: estimationPayload.customerId!,
-        customerName: estimationPayload.custName ?? '',
-        listItem: estimationPayload.listItem ?? const [],
-        salesman: estimationPayload.salesPerson ?? '',
-      ),
-    );
-
-    final productState = productBloc.state;
-
-    final selectedProducts = productState.selectedProductList;
-
-    if (selectedProducts == null || selectedProducts.isEmpty) {
-      debugPrint("No products selected");
-      return;
-    }
-
-    if (customer == null || salesman == null) {
-      debugPrint("Customer or salesman missing");
-      return;
-    }
-
-    Future.delayed(Duration(milliseconds: 800));
-    for (final item in selectedProducts) {
-      productBloc.add(
-        ScanItemEvent(
-          itemNo: item.itemBarcode.toString().trim(),
-          refNo: refNumber!,
-          customer: customer,
-          salesman: salesman,
-        ),
-      );
-    }
-
-    context.go(AppPages.SELECT_PRODUCT);
-  }*/
-
   Future<void> _printWithSunmi() async {
     final pdfData = await _createPdf(
       PdfPageFormat.roll80,
-      MediaQuery.of(context).size,
+      MediaQuery
+          .of(context)
+          .size,
     );
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => pdfData,
@@ -645,11 +394,12 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
           }
           return pw.SizedBox();
         },
-        build: (context) => [
+        build: (context) =>
+        [
           pw.Column(
             children: List.generate(
               products.length,
-              (index) {
+                  (index) {
                 return pw.Container(
                   width: size.width,
                   margin: const pw.EdgeInsets.symmetric(vertical: 3),
@@ -674,105 +424,12 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
     return pdf.save();
   }
 
-  void _calculateTotalsOnce() {
-    totalTaxableAmount = 0;
-    totalTaxAmount = 0;
-    totalAmount = 0;
-
-    final products = productDetails["products"] as List;
-
-    for (final product in products) {
-      totalTaxableAmount += (product['TOTAL'] ?? 0).toDouble();
-      totalTaxAmount += (product['TAXAMOUNT'] ?? 0).toDouble();
-      totalAmount += (product['LINETOTAL'] ?? 0).toDouble();
-    }
-  }
-
-  /*Future<Uint8List> _createPdf(PdfPageFormat format, Size size) async {
-    final pdf = pw.Document(version: PdfVersion.pdf_1_4, compress: true);
-
-    // Load logo once
-    final logoBytes = await rootBundle.load('assets/images/logo.png');
-    final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
-
-    // Page 1..N: All products with header (only on first page)
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
-        header: (context) {
-          if (context.pageNumber == 1) {
-            return _buildHeader(size, logoImage);
-          }
-          return pw.SizedBox(); // ✅ no header on other pages
-        },
-        build: (context) => [
-          pw.Column(
-            mainAxisSize: pw.MainAxisSize.min,
-            children: List.generate(
-              (productDetails["products"] as List).length,
-                  (index) => pw.Container(
-                width: size.width,
-                margin: const pw.EdgeInsets.symmetric(vertical: 3),
-                child: pw.Column(
-                  children: [
-                    _buildProductContainer(size, index),
-                    if(index == (productDetails["products"] as List).length - 1)
-                      pw.SizedBox(height: size.height * 0.3),
-                      _buildFooter(size)
-                  ]
-                )
-              ),
-            ),
-          ),
-        ],
-        // ❌ no footer here → avoids blank space under products
-      ),
-    );
-
-    // Final Page: Footer only (payments + totals + employee)
-    */ /*pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
-        build: (context) {
-          return _buildFooter(size);
-        },
-      ),
-    );*/ /*
-
-    return pdf.save();
-  }*/
   pw.Widget _buildProductContainer(Size size, int index) {
     final products = productDetails["products"] as List;
     final product = products[index]; // ✅ Single product map
-
-    // _calculateTotalsOnce();
-
-    /*debugPrint("Product=>$product");
-    for(var ing in product["INGREDIENTS"]){
-      // debugPrint("ING_ITEMID-->${ing["ITEMID"]}");
-      // debugPrint("ING_RATE-->${ing["RATE"]}");
-      // debugPrint("CHECKING-->${(ing["ITEMID"].toLowerCase() == 'diamond')}");
-      // if (ing.itemId.toLowerCase() == 'diamond') {
-      if (ing["ITEMID"].toLowerCase() == 'diamond') {
-        // debugPrint("ing[\"RATE\"]-->${ing["RATE"]}");
-        // diamondRate += ing["RATE"];
-        diamondRate += ing["CVALUE"];
-      }
-
-      if (ing["ITEMID"].toLowerCase() == 'stone') {
-        // debugPrint("ing[\"RATE\"]-->${ing["RATE"]}");
-        // diamondRate += ing["RATE"];
-        stoneRate += ing["CVALUE"];
-      }
-    }*/
-
     double diamondRate = 0.0;
     double stoneRate = 0.0;
 
-    /*for(var prod in product){
-      debugPrint("TaxableAmount---->${prod['TOTAL']}");
-      totalTaxableAmount += prod['TOTAL'];
-    }*/
     totalTaxableAmount += product['TOTAL'];
     totalTaxAmount += product['TAXAMOUNT'];
     totalAmount += product['LINETOTAL'];
@@ -839,7 +496,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   height: 0.5,
                   margin: pw.EdgeInsets.symmetric(
                     horizontal:
-                        AppDimensions.getResponsiveHeight(context) * 0.002,
+                    AppDimensions.getResponsiveHeight(context) * 0.002,
                   ),
                   color: PdfColors.grey,
                 ),
@@ -870,7 +527,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -901,7 +558,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -932,7 +589,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -963,7 +620,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -994,7 +651,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -1027,7 +684,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     height: 0.5,
                     margin: pw.EdgeInsets.symmetric(
                       horizontal:
-                          AppDimensions.getResponsiveHeight(context) * 0.002,
+                      AppDimensions.getResponsiveHeight(context) * 0.002,
                     ),
                     color: PdfColors.grey,
                   ),
@@ -1160,7 +817,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
               child: pw.Text(
                 details.isNotEmpty
                     ? AppWidgets.formatIndianNumber(totalTaxableAmount)
-                    // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                // ? totalTaxableAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
@@ -1187,7 +844,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
               child: pw.Text(
                 details.isNotEmpty
                     ? AppWidgets.formatIndianNumber(totalTaxAmount)
-                    // ? totalTaxAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                // ? totalTaxAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
@@ -1214,7 +871,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
               child: pw.Text(
                 details.isNotEmpty
                     ? AppWidgets.formatIndianNumber(totalAmount)
-                    // ?  totalAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
+                // ?  totalAmount.toStringAsFixed(2) //details[0].estimateProductDetails?.lineamount ?? ''
                     : "0.00",
                 textAlign: pw.TextAlign.right,
                 style: pw.TextStyle(
