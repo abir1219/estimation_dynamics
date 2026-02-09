@@ -47,6 +47,32 @@ final class EstimationDataState extends EstimationState {
       customer: customer ?? this.customer,
       customerData: customerData ?? this.customerData,
       salesman: salesman ?? this.salesman,
+      refNumber: refNumber ?? this.refNumber, // ✅ SAFE
+      salesmanModel: salesmanModel ?? this.salesmanModel,
+      fullSalesmanList: fullSalesmanList ?? this.fullSalesmanList,
+      filteredSalesmanList:
+      filteredSalesmanList ?? this.filteredSalesmanList,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error, // ✅ FIX
+    );
+  }
+
+
+  /*EstimationDataState copyWith({
+    Customer? customer,
+    CustomerData? customerData,
+    SalesmanPayload? salesman,
+    String? refNumber,
+    SalesmanModel? salesmanModel,
+    List<SalesmanPayload>? fullSalesmanList,
+    List<SalesmanPayload>? filteredSalesmanList,
+    bool? isLoading,
+    String? error,
+  }) {
+    return EstimationDataState(
+      customer: customer ?? this.customer,
+      customerData: customerData ?? this.customerData,
+      salesman: salesman ?? this.salesman,
       refNumber: refNumber ?? this.refNumber,
       salesmanModel: salesmanModel ?? this.salesmanModel,
       fullSalesmanList: fullSalesmanList ?? this.fullSalesmanList,
@@ -54,7 +80,7 @@ final class EstimationDataState extends EstimationState {
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
-  }
+  }*/
 
   @override
   List<Object?> get props => [

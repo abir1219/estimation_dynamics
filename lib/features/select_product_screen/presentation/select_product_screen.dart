@@ -28,7 +28,7 @@ class SelectProductScreen extends StatefulWidget {
 class _SelectProductScreenState extends State<SelectProductScreen> {
   bool _isDialogOpen = false;
 
-  String? refNumber = "";
+  String? refNumber;
 
   late final dynamic customer;
   late final SalesmanPayload salesman;
@@ -44,7 +44,11 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
 
     if (estimationState is EstimationDataState) {
       // Ref number snapshot
+      //refNumber = estimationState.refNumber;
+      // ✅ INITIAL SNAPSHOT (THIS IS THE MISSING PIECE)
       refNumber = estimationState.refNumber;
+
+      debugPrint("INIT REF NUMBER ---> $refNumber");
 
       // Customer resolution
       if (estimationState.customer != null) {
@@ -177,7 +181,7 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
               context.read<ProductBloc>().add(
                 SubmitProductEvent(
                   selectedProductList: state.selectedProductList,
-                  refNo: refNumber,
+                  refNo: refNumber!,
                   customer: customer,
                   salesman: salesman,
                 ),
@@ -195,6 +199,27 @@ class _SelectProductScreenState extends State<SelectProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<EstimationBloc, EstimationState>(
+      listenWhen: (prev, curr) =>
+      curr is EstimationDataState &&
+          curr.refNumber != null &&
+          (prev is! EstimationDataState ||
+              prev.refNumber != curr.refNumber),
+      listener: (context, state) {
+        final estimationState = state as EstimationDataState;
+
+        setState(() {
+          refNumber = estimationState.refNumber;
+        });
+
+        debugPrint("✅ UPDATED REF NUMBER ---> $refNumber");
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
+    debugPrint("✅ UPDATED REF NUMBER ---> $refNumber");
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {

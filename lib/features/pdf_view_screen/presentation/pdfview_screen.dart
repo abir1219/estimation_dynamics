@@ -349,7 +349,8 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       _isEditFlowInProgress = false;
     });
     // 4️⃣ Navigate
-    context.go(AppPages.SELECT_PRODUCT);
+    Future.delayed(const Duration(milliseconds: 500),() => navigatorKey.currentContext!.go(AppPages.SELECT_PRODUCT),);
+    // context.go(AppPages.SELECT_PRODUCT);
   }
 
   Future<void> _printWithSunmi() async {

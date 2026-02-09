@@ -196,7 +196,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         },
       );
     } catch (error) {
-      debugPrint("ScanItem_ERROR-->$error");
+      debugPrint("Submit_Estimation_ERROR-->$error");
       // Optionally, you can add an error field in ProductState and emit here
     }
   }
@@ -283,6 +283,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       return isMatched;
     }).toList();
 
+    print("---EDIT_ESTIMATION_PRODUCTS---$productList");
+
     emit(state.copyWith(
       status: ProductStatus.submittedItems,
       selectedProductList: productList,
@@ -292,6 +294,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
 
   FutureOr<void> _deleteEstimation(
       DeleteEstimationEvent event, Emitter<ProductState> emit) async {
+    print("---DELETE_ESTIMATION---");
+
     emit(state.copyWith(status: ProductStatus.deleteLoading));
     String jsonString = '''
   {
@@ -308,18 +312,30 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       'Accept': 'application/json',
     };
 
-    try {
-      await _productRepository.scanItem(jsonString, header);
+    await _productRepository.scanItem(jsonString, header).then((value) {
+      print("---DELETE_ESTIMATION_DONE---$value");
+      emit(state.copyWith(
+        status: ProductStatus.deleteSuccess,
+        isScanned: true,
+      ));
+    },).onError((error, stackTrace) {
+      debugPrint("DELETE_ESTIMATION_ERROR-->$error");
+      // emit(const ProductState(status: ProductStatus.initial));
+      emit(const ProductState(status: ProductStatus.submitError));
+    },);
 
+    /*try {
+      await _productRepository.scanItem(jsonString, header);
+      print("---DELETE_ESTIMATION_DONE---");
       emit(state.copyWith(
         status: ProductStatus.deleteSuccess,
         isScanned: true,
       ));
     } catch (error) {
-      debugPrint("ScanItem_ERROR-->$error");
+      debugPrint("DELETE_ESTIMATION_ERROR-->$error");
       // emit(const ProductState(status: ProductStatus.initial));
       emit(const ProductState(status: ProductStatus.submitError));
       // Optionally, you can add an error field in ProductState and emit here
-    }
+    }*/
   }
 }

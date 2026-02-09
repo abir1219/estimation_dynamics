@@ -245,6 +245,51 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
   }
 
   FutureOr<void> _generateEstimationNumber(
+      GenerateEstimationNoEvent event,
+      Emitter<EstimationState> emit,
+      ) async {
+    if (state is! EstimationDataState) return;
+
+    final current = state as EstimationDataState;
+
+    emit(current.copyWith(isLoading: true));
+
+    try {
+      final value = await _estimationRepository.generateEstimateNo(
+        '''
+        {
+          "RequestVal": "{\\"Operation\\":\\"ESTIMATENOFORAPP\\",\\"AppKey\\":\\"${SharedPreferencesHelper.getString(AppConstants.APP_KEY)}\\"}",
+          "ObjStrVal": ""
+        }
+        ''',
+        {
+          'Authorization':
+          'bearer ${SharedPreferencesHelper.getString(AppConstants.ACCESS_TOKEN)}',
+          'oun': ConstantVariable.operatingUnitNumber,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      final dataResult = jsonDecode(value["DataResult"]);
+      final newRef =
+      dataResult["Payload"]["Payload"].replaceAll('_', '-');
+
+      emit(current.copyWith(
+        refNumber: newRef,
+        isLoading: false,
+        error: null,
+      ));
+    } catch (e) {
+      emit(current.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      ));
+    }
+  }
+
+
+/*FutureOr<void> _generateEstimationNumber(
       GenerateEstimationNoEvent event, Emitter<EstimationState> emit) async {
     final current = state as EstimationDataState;
     emit(current.copyWith(isLoading: true));
@@ -274,5 +319,5 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
     } catch (error) {
       emit(current.copyWith(isLoading: false, error: error.toString()));
     }
-  }
+  }*/
 }
