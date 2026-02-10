@@ -82,6 +82,12 @@ final class SelectProductEvent extends ProductEvent {
   List<Object?> get props => [product];
 }
 
+final class GoToHomeEvent extends ProductEvent{
+  @override
+  List<Object?> get props => [];
+
+}
+
 final class ResetProductStateEvent extends ProductEvent {
   @override
   List<Object?> get props => [];

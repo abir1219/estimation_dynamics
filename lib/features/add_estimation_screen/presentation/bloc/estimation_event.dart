@@ -9,6 +9,12 @@ final class GenerateEstimationNoEvent extends EstimationEvent {
   List<Object?> get props => [];
 }
 
+final class GotoHomeEvent extends EstimationEvent {
+  @override
+  List<Object?> get props => [];
+
+}
+
 final class SelectSalesmanEvent extends EstimationEvent {
   final SalesmanPayload salesman;
 

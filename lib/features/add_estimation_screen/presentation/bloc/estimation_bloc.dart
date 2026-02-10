@@ -29,6 +29,7 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
     on<SearchEmployeeEvent>(_searchEmployee);
     on<SelectSalesmanEvent>(_onSetSelectSalesman);
     on<ResetSalesmanStateEvent>(_resetSalesmanState);
+    on<GotoHomeEvent>(_goToHome);
   }
 
   FutureOr<void> _resetSalesmanState(
@@ -320,4 +321,8 @@ class EstimationBloc extends Bloc<EstimationEvent, EstimationState> {
       emit(current.copyWith(isLoading: false, error: error.toString()));
     }
   }*/
+
+  FutureOr<void> _goToHome(GotoHomeEvent event, Emitter<EstimationState> emit) {
+    emit(EstimationDataState(customerData: null,salesman: null,refNumber: null));
+  }
 }

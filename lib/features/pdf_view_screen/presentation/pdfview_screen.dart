@@ -25,16 +25,1016 @@ class PdfviewScreen extends StatefulWidget {
   final ReprintEstimationModel? reprintEstimationModel;
   final String refNumber;
 
-  const PdfviewScreen({super.key,
-    this.estimationResponseModel,
-    this.reprintEstimationModel,
-    required this.refNumber});
+  const PdfviewScreen(
+      {super.key,
+      this.estimationResponseModel,
+      this.reprintEstimationModel,
+      required this.refNumber});
 
   @override
   State<PdfviewScreen> createState() => _PdfviewScreenState();
 }
 
 class _PdfviewScreenState extends State<PdfviewScreen> {
+  String details = "";
+  Map<String, dynamic> productDetails = {"products": []};
+
+  double totalTaxableAmount = 0.0;
+  double totalTaxAmount = 0.0;
+  double totalAmount = 0.0;
+
+  String? refNumber;
+  bool _isEditFlowInProgress = false;
+  bool _scanTriggered = false; // 🔐 IMPORTANT
+
+  dynamic customer;
+  SalesmanPayload? salesman;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  /// -------------------- FETCH DATA --------------------
+  void fetchData() {
+    final estimationState = context.read<EstimationBloc>().state;
+    final productState = context.read<ProductBloc>().state;
+
+    if (estimationState is! EstimationDataState) return;
+
+    refNumber = estimationState.refNumber;
+
+    final payload =
+        productState.estimationResponseModel?.dataResult?.payload?.payload;
+
+    customer = estimationState.customer ??
+        estimationState.customerData ??
+        (payload != null
+            ? Customer(
+                accountNumber: payload.customerId ?? '',
+                fullName: payload.custName ?? '',
+              )
+            : null);
+
+    salesman = estimationState.salesman ??
+        (payload != null
+            ? SalesmanPayload(text: payload.salesPerson ?? '', value: '')
+            : null);
+  }
+
+  /// -------------------- UI --------------------
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+
+    /// Always reset product list
+    productDetails["products"] = [];
+
+    if (widget.estimationResponseModel != null) {
+      final payload =
+          widget.estimationResponseModel!.dataResult!.payload!.payload!;
+      details = payload.salesPerson ?? "";
+      productDetails["products"] =
+          payload.listItem!.map((e) => e.toJson()).toList();
+    } else if (widget.reprintEstimationModel != null) {
+      final payload =
+          widget.reprintEstimationModel!.dataResult!.payload.payload;
+      details = payload[0][0].salesPerson;
+      for (final list in payload) {
+        productDetails["products"].addAll(list.map((e) => e.toJson()));
+      }
+    }
+
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+          centerTitle: true,
+          title: const Text(
+            "Print Layout",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          actions: [
+            GestureDetector(
+              onTap: () {
+                context.read<ProductBloc>().add(GoToHomeEvent());
+                context.read<EstimationBloc>().add(GotoHomeEvent());
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  navigatorKey.currentContext!.go(AppPages.LOGIN);
+                });
+              },
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: size.width * 0.025),
+                height: 24,
+                width: 24,
+                child: const Icon(Icons.home, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        body: OrientationBuilder(
+          builder: (_, orientation) {
+            final adjustedSize = orientation == Orientation.portrait
+                ? size
+                : Size(size.height, size.width);
+
+            return Stack(
+              children: [
+                MultiBlocListener(
+                  listeners: [
+                    /// 1️⃣ DELETE DONE → GENERATE REF
+                    BlocListener<ProductBloc, ProductState>(
+                      listenWhen: (p, c) =>
+                          c.status == ProductStatus.deleteSuccess,
+                      listener: (_, __) {
+                        context
+                            .read<EstimationBloc>()
+                            .add(GenerateEstimationNoEvent());
+                      },
+                    ),
+
+                    /// 2️⃣ REF GENERATED → SCAN (ONCE)
+                    BlocListener<EstimationBloc, EstimationState>(
+                      listenWhen: (prev, curr) {
+                        if (prev is EstimationDataState &&
+                            curr is EstimationDataState) {
+                          return prev.refNumber != curr.refNumber &&
+                              curr.refNumber != null;
+                        }
+                        return curr is EstimationDataState &&
+                            curr.refNumber != null;
+                      },
+                      listener: (_, state) {
+                        if (_scanTriggered) return;
+
+                        final s = state as EstimationDataState;
+                        _scanTriggered = true;
+
+                        refNumber = s.refNumber;
+                        debugPrint("✅ SCAN FLOW STARTED → $refNumber");
+
+                        final productBloc = context.read<ProductBloc>();
+                        final productState = productBloc.state;
+
+                        final payload = widget.estimationResponseModel
+                            ?.dataResult?.payload?.payload;
+
+                        if (payload == null) return;
+
+                        final productIds = payload.listItem!
+                            .map((e) => e.productId?.toString())
+                            .whereType<String>()
+                            .toSet();
+                        debugPrint("==>$productIds");
+
+                        final products = productState.selectedProductList
+                            ?.where((p) =>
+                                productIds.contains(p.productId.toString()))
+                            .toList();
+
+                        debugPrint("==>${products!.length}");
+                        debugPrint("==>${products}");
+
+                        _continueEditFlow(productBloc, products);
+                      },
+                    ),
+                  ],
+                  child: PdfPreview(
+                    allowSharing: false,
+                    allowPrinting: true,
+                    useActions: false,
+                    build: (format) => _createPdf(format, adjustedSize),
+                  ),
+                ),
+
+                /// 🔄 LOADER
+                if (_isEditFlowInProgress)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'print',
+              backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+              onPressed: _printWithSunmi,
+              child: const Icon(Icons.print, color: Colors.white),
+            ),
+            FloatingActionButton.small(
+              heroTag: 'edit',
+              backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+              child: const Icon(Icons.edit,color: Colors.white,),
+              onPressed: () {
+                setState(() {
+                  _isEditFlowInProgress = true;
+                  _scanTriggered = false; // 🔁 RESET
+                });
+
+                fetchData();
+
+                context.read<ProductBloc>().add(
+                      DeleteEstimationEvent(
+                        referenceNo: widget.refNumber,
+                      ),
+                    );
+              },
+            ),
+            SizedBox(width: 10                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      ,),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// -------------------- SCAN FLOW --------------------
+  void _continueEditFlow(
+    ProductBloc bloc,
+    List<ProductPayload>? products,
+  ) {
+    if (products == null ||
+        products.isEmpty ||
+        customer == null ||
+        salesman == null ||
+        refNumber == null) {
+      return;
+    }
+
+    int count = 0;
+
+    for (final item in products) {
+      bloc.add(
+        ScanItemEvent(
+          itemNo: item.itemBarcode.toString().trim(),
+          refNo: refNumber!,
+          customer: customer,
+          salesman: salesman,
+          fromPdf: count == 0,
+        ),
+      );
+
+      bloc.add(SelectProductEvent(product: item));
+      count++;
+    }
+
+    setState(() => _isEditFlowInProgress = false);
+
+    Future.delayed(
+      const Duration(milliseconds: 400),
+      () => navigatorKey.currentContext!.go(AppPages.SELECT_PRODUCT),
+    );
+  }
+
+  /// -------------------- PDF --------------------
+  Future<Uint8List> _createPdf(PdfPageFormat format, Size size) async {
+    final products = productDetails["products"] as List;
+
+    totalTaxableAmount = 0;
+    totalTaxAmount = 0;
+    totalAmount = 0;
+
+    for (final p in products) {
+      totalTaxableAmount += (p['TOTAL'] ?? 0).toDouble();
+      totalTaxAmount += (p['TAXAMOUNT'] ?? 0).toDouble();
+      totalAmount += (p['LINETOTAL'] ?? 0).toDouble();
+    }
+
+    final pdf = pw.Document(
+      version: PdfVersion.pdf_1_4,
+      compress: true,
+    );
+
+    final logoBytes = await rootBundle.load('assets/images/logo.png');
+    final logo = pw.MemoryImage(logoBytes.buffer.asUint8List());
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
+        header: (c) =>
+            c.pageNumber == 1 ? _buildHeader(size, logo) : pw.SizedBox(),
+        build: (_) => [
+          pw.Column(
+            children: List.generate(
+              products.length,
+              (i) => pw.Column(
+                children: [
+                  _buildProductContainer(size, i),
+                  if (i == products.length - 1) _buildFooter(size),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  pw.Widget _buildHeader(Size size, pw.MemoryImage logoImage) {
+    return pw.Column(
+      mainAxisAlignment: pw.MainAxisAlignment.start,
+      children: [
+        pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.symmetric(vertical: 10),
+          child: pw.Image(
+            logoImage,
+            width: size.width * 0.4,
+            height: size.width * 0.25,
+          ),
+        ),
+        pw.Text(
+          "* SALES ADVICE *",
+          style: pw.TextStyle(
+            fontSize: 24,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 10),
+        pw.Row(
+          children: [
+            pw.Spacer(),
+            pw.Text(
+              DateFormat('dd-MM-yyyy').format(DateTime.now()),
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 10),
+        pw.Divider(thickness: 0.5),
+        pw.Container(
+          margin: const pw.EdgeInsets.symmetric(vertical: 15),
+          child: pw.BarcodeWidget(
+            barcode: pw.Barcode.code39(),
+            data: widget.refNumber.toUpperCase(),
+            width: size.width * 0.9,
+            height: 75,
+            drawText: false,
+          ),
+        ),
+        pw.Text(
+          widget.refNumber.toUpperCase(),
+          style: pw.TextStyle(
+            fontSize: 22,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 10),
+      ],
+    );
+  }
+
+  pw.Widget _buildProductContainer(Size size, int index) {
+    final products = productDetails["products"] as List;
+    final product = products[index];
+
+    double diamondRate = 0.0;
+    double stoneRate = 0.0;
+
+    for (final ing in product["INGREDIENTS"] ?? []) {
+      final id = ing["ITEMID"]?.toString().toLowerCase();
+      final value = (ing["CVALUE"] ?? 0).toDouble();
+
+      if (id == 'diamond') diamondRate += value;
+      if (id == 'stone') stoneRate += value;
+    }
+
+    return pw.Column(
+      children: [
+        pw.Text(
+          "${product["PRODUCTID"] ?? ""}",
+          style: pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.Divider(thickness: 0.5),
+        pw.Text(
+          "${product["ITEMID"] ?? ""}",
+          style: pw.TextStyle(
+            fontSize: 18,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+          children: [
+            _valueColumn("Pcs", product["PIECE"]),
+            _valueColumn("Gross", product["GROSSWEIGHT"].toStringAsFixed(3)),
+            _valueColumn("Nett", product["NETWEIGHT"].toStringAsFixed(3)),
+            _valueColumn("DiaChrg", diamondRate.toStringAsFixed(2)),
+            _valueColumn("StnChrg", stoneRate.toStringAsFixed(2)),
+            _valueColumn(
+              "MkChrg",
+              (product["MAKINGRATE"] + product["WASTAGEAMOUNT"])
+                  .toStringAsFixed(2),
+            ),
+            _valueColumn("Value", product["TOTAL"].toStringAsFixed(2)),
+          ],
+        ),
+        pw.Divider(thickness: 0.5),
+      ],
+    );
+  }
+
+  /// Small helper for columns
+  pw.Widget _valueColumn(String title, dynamic value) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          title,
+          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 2),
+        pw.Text(
+          "$value",
+          style: const pw.TextStyle(fontSize: 11.5),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildFooter(Size size) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 10),
+        _footerRow(
+          "Total Taxable Amount",
+          AppWidgets.formatIndianNumber(totalTaxableAmount),
+        ),
+        pw.SizedBox(height: 6),
+        _footerRow(
+          "Total Tax Amount",
+          AppWidgets.formatIndianNumber(totalTaxAmount),
+        ),
+        pw.SizedBox(height: 6),
+        _footerRow(
+          "Total Amount",
+          AppWidgets.formatIndianNumber(totalAmount),
+        ),
+        pw.SizedBox(height: 12),
+        pw.Align(
+          alignment: pw.Alignment.center,
+          child: pw.Text(
+            details,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 🔹 Print
+  Future<void> _printWithSunmi() async {
+    final pdfData = await _createPdf(
+      PdfPageFormat.roll80,
+      MediaQuery.of(context).size,
+    );
+    await Printing.layoutPdf(
+      onLayout: (_) async => pdfData,
+      format: PdfPageFormat.roll80,
+      name: 'Estimation_Print_Copy',
+    );
+  }
+
+  /// Footer row helper
+  pw.Widget _footerRow(String label, String value) {
+    return pw.Row(
+      children: [
+        pw.Expanded(
+          child: pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+        pw.Expanded(
+          child: pw.Text(
+            value,
+            textAlign: pw.TextAlign.right,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/*class _PdfviewScreenState extends State<PdfviewScreen> {
+  String details = "";
+  Map<String, dynamic> productDetails = {"products": []};
+
+  double totalTaxableAmount = 0.0;
+  double totalTaxAmount = 0.0;
+  double totalAmount = 0.0;
+  bool _scanTriggered = false;
+
+  String? refNumber;
+  bool _isEditFlowInProgress = false;
+
+  dynamic customer;
+  SalesmanPayload? salesman;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  /// 🔹 Fetch customer & salesman
+  void fetchData() {
+    final estimationState = context.read<EstimationBloc>().state;
+    final productState = context.read<ProductBloc>().state;
+
+    if (estimationState is! EstimationDataState) return;
+
+    refNumber = estimationState.refNumber;
+
+    final payload =
+        productState.estimationResponseModel?.dataResult?.payload?.payload;
+
+    customer = estimationState.customer ??
+        estimationState.customerData ??
+        (payload != null
+            ? Customer(
+                accountNumber: payload.customerId ?? '',
+                fullName: payload.custName ?? '',
+              )
+            : null);
+
+    salesman = estimationState.salesman ??
+        (payload != null
+            ? SalesmanPayload(text: payload.salesPerson ?? '', value: '')
+            : null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+
+    /// Always rebuild product list cleanly
+    productDetails["products"] = [];
+
+    if (widget.estimationResponseModel != null) {
+      final payload =
+          widget.estimationResponseModel!.dataResult!.payload!.payload!;
+      details = payload.salesPerson ?? "";
+      productDetails["products"] =
+          payload.listItem!.map((e) => e.toJson()).toList();
+    } else if (widget.reprintEstimationModel != null) {
+      final payload =
+          widget.reprintEstimationModel!.dataResult!.payload.payload;
+      details = payload[0][0].salesPerson;
+      for (final prodList in payload) {
+        productDetails["products"].addAll(prodList.map((e) => e.toJson()));
+      }
+    }
+
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+          centerTitle: true,
+          title: const Text(
+            "Print Layout",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          actions: [
+            GestureDetector(
+              onTap: () {
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  navigatorKey.currentContext!.go(AppPages.LOGIN);
+                });
+              },
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: size.width * 0.025),
+                height: 24,
+                width: 24,
+                child: const Icon(Icons.home, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        body: OrientationBuilder(
+          builder: (context, orientation) {
+            final adjustedSize = orientation == Orientation.portrait
+                ? size
+                : Size(size.height, size.width);
+
+            return Stack(
+              children: [
+                MultiBlocListener(
+                  listeners: [
+                    /// 🔹 STEP 1: After delete → generate ref no
+                    BlocListener<ProductBloc, ProductState>(
+                      listenWhen: (p, c) =>
+                          c.status == ProductStatus.deleteSuccess,
+                      listener: (context, state) {
+                        context
+                            .read<EstimationBloc>()
+                            .add(GenerateEstimationNoEvent());
+                      },
+                    ),
+
+                    /// 🔹 STEP 2: After ref no → scan items
+                    BlocListener<EstimationBloc, EstimationState>(
+                      listenWhen: (p, c) =>
+                          c is EstimationDataState && c.refNumber != null,
+                      listener: (context, state) {
+                        final estimationState = state as EstimationDataState;
+
+                        refNumber = estimationState.refNumber;
+                        final productBloc = context.read<ProductBloc>();
+                        final productState = productBloc.state;
+
+                        final payload = widget.estimationResponseModel
+                            ?.dataResult?.payload?.payload;
+
+                        if (payload == null) return;
+
+                        final productIds = payload.listItem!
+                            .map((e) => e.productId?.toString())
+                            .whereType<String>()
+                            .toSet();
+
+                        final products = productState.selectedProductList
+                            ?.where((p) =>
+                                productIds.contains(p.productId.toString()))
+                            .toList();
+
+                        _continueEditFlow(productBloc, products);
+                      },
+                    ),
+                  ],
+                  child: PdfPreview(
+                    allowSharing: false,
+                    allowPrinting: true,
+                    canChangeOrientation: false,
+                    canChangePageFormat: false,
+                    useActions: false,
+                    build: (format) => _createPdf(format, adjustedSize),
+                  ),
+                ),
+
+                /// 🔄 Loader
+                if (_isEditFlowInProgress)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.BUTTON_COLOR,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'print',
+              backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+              onPressed: _printWithSunmi,
+              child: const Icon(Icons.print, color: Colors.white),
+            ),
+            if (widget.estimationResponseModel != null)
+              const SizedBox(width: 10),
+            if (widget.estimationResponseModel != null)
+              FloatingActionButton.small(
+                heroTag: 'edit',
+                backgroundColor: AppColors.DEEP_YELLOW_COLOR,
+                child: const Icon(Icons.edit, color: Colors.white),
+                onPressed: () {
+                  setState(() => _isEditFlowInProgress = true);
+                  fetchData();
+                  context.read<ProductBloc>().add(
+                        DeleteEstimationEvent(
+                          referenceNo: widget.refNumber,
+                        ),
+                      );
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 Scan flow (safe & ordered)
+  void _continueEditFlow(
+    ProductBloc bloc,
+    List<ProductPayload>? products,
+  ) {
+    if (products == null ||
+        products.isEmpty ||
+        customer == null ||
+        salesman == null ||
+        refNumber == null) return;
+
+    int count = 0;
+
+    for (final item in products) {
+      bloc.add(
+        ScanItemEvent(
+          itemNo: item.itemBarcode.toString().trim(),
+          refNo: refNumber!,
+          customer: customer,
+          salesman: salesman,
+          fromPdf: count == 0,
+        ),
+      );
+      bloc.add(SelectProductEvent(product: item));
+      count++;
+    }
+
+    setState(() => _isEditFlowInProgress = false);
+
+    Future.delayed(
+      const Duration(milliseconds: 400),
+      () => navigatorKey.currentContext!.go(AppPages.SELECT_PRODUCT),
+    );
+  }
+
+  /// 🔹 Print
+  Future<void> _printWithSunmi() async {
+    final pdfData = await _createPdf(
+      PdfPageFormat.roll80,
+      MediaQuery.of(context).size,
+    );
+    await Printing.layoutPdf(
+      onLayout: (_) async => pdfData,
+      format: PdfPageFormat.roll80,
+      name: 'Estimation_Print_Copy',
+    );
+  }
+
+  /// 🔹 PDF creation (PURE & SAFE)
+  Future<Uint8List> _createPdf(PdfPageFormat format, Size size) async {
+    final products = productDetails["products"] as List;
+
+    /// ✅ RESET TOTALS
+    totalTaxableAmount = 0.0;
+    totalTaxAmount = 0.0;
+    totalAmount = 0.0;
+
+    /// ✅ CALCULATE TOTALS ONCE
+    for (final product in products) {
+      totalTaxableAmount += (product['TOTAL'] ?? 0).toDouble();
+      totalTaxAmount += (product['TAXAMOUNT'] ?? 0).toDouble();
+      totalAmount += (product['LINETOTAL'] ?? 0).toDouble();
+    }
+
+    final pdf = pw.Document(
+      version: PdfVersion.pdf_1_4,
+      compress: true,
+    );
+
+    final logoBytes = await rootBundle.load('assets/images/logo.png');
+    final logo = pw.MemoryImage(logoBytes.buffer.asUint8List());
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat(size.width, size.height, marginAll: 5),
+        header: (ctx) =>
+            ctx.pageNumber == 1 ? _buildHeader(size, logo) : pw.SizedBox(),
+        build: (_) => [
+          pw.Column(
+            children: List.generate(
+              products.length,
+              (i) => pw.Column(
+                children: [
+                  _buildProductContainer(size, i),
+                  if (i == products.length - 1) _buildFooter(size),
+                ],
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+
+    return pdf.save();
+  }
+
+  pw.Widget _buildHeader(Size size, pw.MemoryImage logoImage) {
+    return pw.Column(
+      mainAxisAlignment: pw.MainAxisAlignment.start,
+      children: [
+        pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.symmetric(vertical: 10),
+          child: pw.Image(
+            logoImage,
+            width: size.width * 0.4,
+            height: size.width * 0.25,
+          ),
+        ),
+        pw.Text(
+          "* SALES ADVICE *",
+          style: pw.TextStyle(
+            fontSize: 24,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 10),
+        pw.Row(
+          children: [
+            pw.Spacer(),
+            pw.Text(
+              DateFormat('dd-MM-yyyy').format(DateTime.now()),
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 10),
+        pw.Divider(thickness: 0.5),
+        pw.Container(
+          margin: const pw.EdgeInsets.symmetric(vertical: 15),
+          child: pw.BarcodeWidget(
+            barcode: pw.Barcode.code39(),
+            data: widget.refNumber.toUpperCase(),
+            width: size.width * 0.9,
+            height: 75,
+            drawText: false,
+          ),
+        ),
+        pw.Text(
+          widget.refNumber.toUpperCase(),
+          style: pw.TextStyle(
+            fontSize: 22,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 10),
+      ],
+    );
+  }
+
+  pw.Widget _buildProductContainer(Size size, int index) {
+    final products = productDetails["products"] as List;
+    final product = products[index];
+
+    double diamondRate = 0.0;
+    double stoneRate = 0.0;
+
+    for (final ing in product["INGREDIENTS"] ?? []) {
+      final id = ing["ITEMID"]?.toString().toLowerCase();
+      final value = (ing["CVALUE"] ?? 0).toDouble();
+
+      if (id == 'diamond') diamondRate += value;
+      if (id == 'stone') stoneRate += value;
+    }
+
+    return pw.Column(
+      children: [
+        pw.Text(
+          "${product["PRODUCTID"] ?? ""}",
+          style: pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.Divider(thickness: 0.5),
+        pw.Text(
+          "${product["ITEMID"] ?? ""}",
+          style: pw.TextStyle(
+            fontSize: 18,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.SizedBox(height: 6),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+          children: [
+            _valueColumn("Pcs", product["PIECE"]),
+            _valueColumn("Gross", product["GROSSWEIGHT"].toStringAsFixed(3)),
+            _valueColumn("Nett", product["NETWEIGHT"].toStringAsFixed(3)),
+            _valueColumn("DiaChrg", diamondRate.toStringAsFixed(2)),
+            _valueColumn("StnChrg", stoneRate.toStringAsFixed(2)),
+            _valueColumn(
+              "MkChrg",
+              (product["MAKINGRATE"] + product["WASTAGEAMOUNT"])
+                  .toStringAsFixed(2),
+            ),
+            _valueColumn("Value", product["TOTAL"].toStringAsFixed(2)),
+          ],
+        ),
+        pw.Divider(thickness: 0.5),
+      ],
+    );
+  }
+
+  /// Small helper for columns
+  pw.Widget _valueColumn(String title, dynamic value) {
+    return pw.Column(
+      children: [
+        pw.Text(
+          title,
+          style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+        ),
+        pw.SizedBox(height: 2),
+        pw.Text(
+          "$value",
+          style: const pw.TextStyle(fontSize: 11.5),
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _buildFooter(Size size) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.SizedBox(height: 10),
+        _footerRow(
+          "Total Taxable Amount",
+          AppWidgets.formatIndianNumber(totalTaxableAmount),
+        ),
+        pw.SizedBox(height: 6),
+        _footerRow(
+          "Total Tax Amount",
+          AppWidgets.formatIndianNumber(totalTaxAmount),
+        ),
+        pw.SizedBox(height: 6),
+        _footerRow(
+          "Total Amount",
+          AppWidgets.formatIndianNumber(totalAmount),
+        ),
+        pw.SizedBox(height: 12),
+        pw.Align(
+          alignment: pw.Alignment.center,
+          child: pw.Text(
+            details,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Footer row helper
+  pw.Widget _footerRow(String label, String value) {
+    return pw.Row(
+      children: [
+        pw.Expanded(
+          child: pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+        pw.Expanded(
+          child: pw.Text(
+            value,
+            textAlign: pw.TextAlign.right,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}*/
+
+/*class _PdfviewScreenState extends State<PdfviewScreen> {
   String details = "";
   List<int> productNo = [];
   List<String> productName = [];
@@ -133,10 +1133,10 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: AppColors.DEEP_YELLOW_COLOR,
-          /*leading: BackButton(
+          */ /*leading: BackButton(
             color: Colors.white,
             onPressed: () => context.go(AppPages.SELECT_PRODUCT),
-          ),*/
+          ),*/ /*
           actions: [
             GestureDetector(
               onTap: () {
@@ -150,10 +1150,10 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     );
                   }
                 });
-                /*context.go(
+                */ /*context.go(
                     // AppPages.ESTIMATION,
                     AppPages.SEARCH_PRODUCT,
-                  );*/
+                  );*/ /*
               },
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: size.width * 0.025),
@@ -274,12 +1274,12 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                   await _printWithSunmi(); // directly prints
                 },
                 backgroundColor: AppColors.DEEP_YELLOW_COLOR,
-                /*label: const Text(
+                */ /*label: const Text(
                   'Print',
                   style: TextStyle(
                     color: Colors.white,
                   ),
-                ),*/
+                ),*/ /*
                 child: const Icon(
                   Icons.print,
                   color: Colors.white,
@@ -739,7 +1739,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
               pw.Spacer(),
-              /*pw.Expanded(
+              */ /*pw.Expanded(
                 child: pw.Text(
                   "Mob No.: ${widget.mobileNo}",
                   style: pw.TextStyle(
@@ -748,7 +1748,7 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
                     color: PdfColors.black,
                   ),
                 ),
-              ),*/
+              ),*/ /*
               pw.Expanded(
                 child: pw.Text(
                   DateFormat('dd-MM-yyyy').format(DateTime.now()),
@@ -789,15 +1789,15 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
 
   pw.Widget _buildFooter(Size size) {
     //final payments = widget.estimationResponseModel.data!.estimatePayments ?? [];
-    /*final details = widget.estimationResponseModel!.dataResult!.payload!.payload!
+    */ /*final details = widget.estimationResponseModel!.dataResult!.payload!.payload!
             .salesPerson ??
-        "";*/
+        "";*/ /*
 
     // double totalAmount = 0.00;
     debugPrint("TotalTaxableAmount---->$totalTaxableAmount");
-    /*for(var i in details){
+    */ /*for(var i in details){
       totalAmount += double.tryParse(i.estimateProductDetails!.lineamount!) ?? 0.00;
-    }*/
+    }*/ /*
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -897,4 +1897,4 @@ class _PdfviewScreenState extends State<PdfviewScreen> {
       ],
     );
   }
-}
+}*/

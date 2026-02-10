@@ -1,6 +1,8 @@
+import 'package:estimation_dynamics/features/add_estimation_screen/presentation/bloc/estimation_bloc.dart';
 import 'package:estimation_dynamics/router/app_pages.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -8,6 +10,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_dimensions.dart';
+import '../features/product_list_dialog/presentation/bloc/product_bloc.dart';
 import '../main.dart';
 
 class AppWidgets {
@@ -61,7 +64,11 @@ class AppWidgets {
                         )
                       : Container(),
                   GestureDetector(
-                    onTap: () => context.go(AppPages.LOGIN),
+                    onTap: () {
+                      context.read<ProductBloc>().add(GoToHomeEvent());
+                      context.read<EstimationBloc>().add(GotoHomeEvent());
+                      context.go(AppPages.LOGIN);
+                    },
                     child: Container(
                       height: 40,
                       width: 40,
@@ -70,11 +77,9 @@ class AppWidgets {
                         color: AppColors.APP_SCREEN_BACKGROUND_COLOR,
                       ),
                       child: Center(
-                        child: Icon(
-                          Icons.home, //person_2_outlined,
-                          color: AppColors.TITLE_TEXT_COLOR,
-                          size: 24,
-                        ),
+                        child: Icon(Icons.home, //person_2_outlined,
+                            color: AppColors.TITLE_TEXT_COLOR,
+                            size: 24),
                       ),
                     ),
                   ),
@@ -100,7 +105,8 @@ class AppWidgets {
   }
 
   static String formatIndianNumber(double number) {
-    final indianFormat = NumberFormat("#,##,##0.00", "en_IN"); // Uses Indian Number Format
+    final indianFormat =
+        NumberFormat("#,##,##0.00", "en_IN"); // Uses Indian Number Format
     return indianFormat.format(number);
   }
 
@@ -205,9 +211,11 @@ class AppWidgets {
       child: TextField(
         controller: controller,
         style: const TextStyle(color: Colors.black),
-        keyboardType: !isEmail?TextInputType.phone:TextInputType.emailAddress,
+        keyboardType:
+            !isEmail ? TextInputType.phone : TextInputType.emailAddress,
         maxLength: maxLength,
-        inputFormatters: !isEmail?[FilteringTextInputFormatter.digitsOnly]:null,
+        inputFormatters:
+            !isEmail ? [FilteringTextInputFormatter.digitsOnly] : null,
         decoration: InputDecoration(
           hintText: hintString,
           counterText: "",

@@ -31,6 +31,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<DeleteProductStateEvent>(_deleteProductState);
     on<UnlockItemEvent>(_unlockItem);
     on<ApiStatusChangeEvent>(_changeApiStatus);
+    on<GoToHomeEvent>(_goToHome);
   }
 
   // List<ProductPayload> selectedProduct = [];
@@ -57,6 +58,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     // double lineNum = state.productList!.length.toDouble() + 1;
     if(event.fromPdf == true){
       updatedList.clear();
+      emit(state.copyWith(selectedProductList: []));
     }
     double lineNum = updatedList.length.toDouble() + 1;
 
@@ -337,5 +339,10 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       emit(const ProductState(status: ProductStatus.submitError));
       // Optionally, you can add an error field in ProductState and emit here
     }*/
+  }
+
+  FutureOr<void> _goToHome(GoToHomeEvent event, Emitter<ProductState> emit) {
+    updatedList.clear();
+    emit(state.copyWith(selectedProductList: [],estimationResponseModel: null,productList: []));
   }
 }
